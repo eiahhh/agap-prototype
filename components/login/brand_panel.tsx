@@ -1,87 +1,59 @@
-import type { ReactNode } from "react";
+import Image from "next/image";
 import { Agap_logo } from "./agap_logo";
 
 type feature_item = {
-    icon_paths: ReactNode;
+    icon_src: string;
     text: string;
 };
 
-// Simple outline icons (24x24 grid). Only the inner paths are stored here.
 const feature_list: feature_item[] = [
     {
-        icon_paths: (
-            <>
-                <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
-                <path d="m9 12 2 2 4-4" />
-            </>
-        ),
+        icon_src: "/login/icon_shield.svg",
         text: "Role-based access for CDRRMO personnel, administrators, and IT staff",
     },
     {
-        icon_paths: (
-            <>
-                <circle cx="12" cy="12" r="10" />
-                <path d="m9 12 2 2 4-4" />
-            </>
-        ),
+        icon_src: "/login/icon_check_circle.svg",
         text: "Every announcement requires authorized approval before publication",
     },
     {
-        icon_paths: (
-            <>
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                <path d="M3 3v5h5" />
-                <path d="M12 7v5l4 2" />
-            </>
-        ),
+        icon_src: "/login/icon_history.svg",
         text: "All account activity is recorded in the audit trail",
     },
 ];
 
 export function Brand_panel() {
     return (
-        <aside className="relative hidden overflow-hidden bg-agap-900 px-14 pb-12 pt-14 text-white lg:flex lg:flex-col lg:justify-between">
+        <aside className="relative hidden overflow-hidden bg-agap-900 px-[52px] py-11 text-white lg:flex lg:flex-col lg:justify-between">
             {/* Faint decorative rings anchored to the bottom-right corner */}
             <div
                 aria-hidden="true"
-                className="pointer-events-none absolute -bottom-[322px] -right-[350px] size-[700px] rounded-full border border-white/[0.07]"
+                className="pointer-events-none absolute -bottom-[180px] -right-[220px] size-[520px] rounded-full border-[0.8px] border-agap-300/[0.18]"
             />
             <div
                 aria-hidden="true"
-                className="pointer-events-none absolute -bottom-[207px] -right-[235px] size-[470px] rounded-full border border-white/[0.07]"
+                className="pointer-events-none absolute -bottom-20 -right-[120px] size-80 rounded-full border-[0.8px] border-agap-300/[0.18]"
             />
 
             <Agap_logo tone="light" />
 
-            <div className="relative max-w-[31rem]">
-                <p className="text-[11px] font-medium uppercase leading-none tracking-[0.14em] text-white/70">
+            <div className="relative w-full max-w-[440px]">
+                <p className="text-[10px] font-semibold uppercase leading-[15px] tracking-[1px] text-agap-300">
                     CDRRMO · Dasmariñas City
                 </p>
 
-                <h2 className="mt-3 text-[38px] font-semibold leading-[1.2] tracking-[-0.02em]">
+                <h2 className="mt-2.5 text-[33.28px] font-semibold leading-[39.936px] tracking-[-0.9984px]">
                     Verified information for faster, calmer decisions.
                 </h2>
 
-                <p className="mt-4 text-[15px] leading-[1.7] text-white/75">
+                <p className="mt-3.5 text-[13px] leading-[22.1px] text-agap-200">
                     Monitor weather observations, prepare announcements, and route every advisory through
                     authorized human review.
                 </p>
 
-                <ul className="mt-11 space-y-4 border-t border-white/15 pt-6">
+                <ul className="mt-10 space-y-3.5 border-t-[0.8px] border-agap-300/[0.22] pt-[22px]">
                     {feature_list.map((feature) => (
-                        <li key={feature.text} className="flex items-center gap-3.5 text-[13px] leading-[21px] text-white/85">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={1.75}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                                className="size-[18px] shrink-0 text-agap-300"
-                            >
-                                {feature.icon_paths}
-                            </svg>
+                        <li key={feature.text} className="flex items-start gap-3 text-[11px] leading-[17.6px] text-agap-100">
+                            <Image src={feature.icon_src} alt="" width={18} height={18} className="mt-px shrink-0" />
                             {feature.text}
                         </li>
                     ))}

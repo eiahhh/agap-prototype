@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Outfit } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 
-const font_outfit = Outfit({
+const font_poppins = Poppins({
   subsets: ["latin"],
-  variable: "--font_outfit",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font_poppins",
   display: "swap",
 });
 
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function root_layout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={font_outfit.variable}>
+    <html lang="en" className={font_poppins.variable}>
       <body className="font-sans antialiased">{children}</body>
     </html>
   );

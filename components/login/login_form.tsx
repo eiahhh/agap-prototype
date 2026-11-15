@@ -1,12 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
 const input_field_class =
-    "h-12 w-full rounded-xl border border-agap-line bg-white/80 px-3.5 text-sm text-agap-ink " +
-    "shadow-[0_1px_2px_rgba(23,63,44,0.05)] outline-none transition " +
-    "placeholder:text-agap-muted/70 focus:border-agap-700 focus:ring-2 focus:ring-agap-700/15";
+    "h-[43.6px] w-full rounded-[10px] border-[0.8px] border-agap-line bg-agap-field px-[13px] text-xs font-medium text-agap-ink " +
+    "outline-none transition placeholder:text-agap-ink/50 focus:border-agap-700 focus:ring-2 focus:ring-agap-700/15";
+
+const label_class = "text-[11px] font-medium leading-[16.5px] text-agap-muted";
+
+const inline_link_class = "text-[10px] font-semibold leading-[15px] text-agap-700 underline";
 
 export function Login_form() {
     const [email_value, set_email_value] = useState("");
@@ -27,68 +31,72 @@ export function Login_form() {
     }
 
     return (
-        <div className="w-full max-w-[31rem]">
-            <p className="text-[11px] font-bold uppercase leading-none tracking-[0.14em] text-agap-500">
+        <div className="w-full max-w-[440px]">
+            <p className="text-[10px] font-semibold uppercase leading-[15px] tracking-[1px] text-agap-500">
                 Welcome back
             </p>
-            <h1 className="mt-3 text-[40px] font-medium leading-[1.1] tracking-[-0.02em] text-agap-ink">
+            <h1 className="pt-1.5 text-4xl font-normal leading-[43.2px] tracking-[-1.08px] text-agap-ink">
                 Sign in to AGAP
             </h1>
-            <p className="mt-3 text-sm text-agap-muted">Use your CDRRMO-issued email to continue.</p>
+            <p className="pt-2 text-xs leading-[18px] text-agap-muted">Use your CDRRMO-issued email to continue.</p>
 
-            <form onSubmit={handle_submit} className="mt-8">
-                <label htmlFor="email" className="block text-[13px] font-medium text-agap-ink/80">
-                    Email address
-                </label>
-                <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    placeholder="name@cdrrmo.gov.ph"
-                    value={email_value}
-                    onChange={(event) => set_email_value(event.target.value)}
-                    className={`mt-2 ${input_field_class}`}
-                />
-
-                <div className="mt-5 flex items-center justify-between">
-                    <label htmlFor="password" className="text-[13px] font-medium text-agap-ink/80">
-                        Password
+            <form onSubmit={handle_submit} className="mt-[26px] flex flex-col gap-4">
+                <div>
+                    <label htmlFor="email" className={`block ${label_class}`}>
+                        Email address
                     </label>
-                    <Link href="/forgot-password" className="text-xs font-semibold text-agap-700 underline underline-offset-2">
-                        Forgot password?
-                    </Link>
-                </div>
-                <div className="relative mt-2">
                     <input
-                        id="password"
-                        name="password"
-                        type={is_password_visible ? "text" : "password"}
-                        autoComplete="current-password"
+                        id="email"
+                        name="email"
+                        type="email"
+                        autoComplete="email"
                         required
-                        placeholder="Enter your password"
-                        value={password_value}
-                        onChange={(event) => set_password_value(event.target.value)}
-                        className={`pr-16 ${input_field_class}`}
+                        placeholder="name@cdrrmo.gov.ph"
+                        value={email_value}
+                        onChange={(event) => set_email_value(event.target.value)}
+                        className={`mt-1.5 ${input_field_class}`}
                     />
-                    <button
-                        type="button"
-                        onClick={() => set_is_password_visible((is_visible) => !is_visible)}
-                        aria-pressed={is_password_visible}
-                        className="absolute inset-y-0 right-3.5 text-xs font-semibold text-agap-700 underline underline-offset-2"
-                    >
-                        {is_password_visible ? "Hide" : "Show"}
-                    </button>
                 </div>
 
-                <label className="mt-5 flex w-fit cursor-pointer items-center gap-2.5 text-[13px] text-agap-ink/70">
-                    <span className="relative flex size-[17px] shrink-0">
+                <div>
+                    <div className="flex items-center justify-between">
+                        <label htmlFor="password" className={label_class}>
+                            Password
+                        </label>
+                        <Link href="/forgot-password" className={inline_link_class}>
+                            Forgot password?
+                        </Link>
+                    </div>
+                    <div className="relative mt-1.5">
+                        <input
+                            id="password"
+                            name="password"
+                            type={is_password_visible ? "text" : "password"}
+                            autoComplete="current-password"
+                            required
+                            placeholder="Enter your password"
+                            value={password_value}
+                            onChange={(event) => set_password_value(event.target.value)}
+                            className={`pr-[62px] ${input_field_class}`}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => set_is_password_visible((is_visible) => !is_visible)}
+                            aria-label={is_password_visible ? "Hide password" : "Show password"}
+                            className={`absolute inset-y-0 right-[13px] ${inline_link_class}`}
+                        >
+                            {is_password_visible ? "Hide" : "Show"}
+                        </button>
+                    </div>
+                </div>
+
+                <label className="flex w-fit cursor-pointer items-start gap-2.5 text-[11px] font-medium leading-[17.6px] text-agap-muted">
+                    <span className="relative mt-0.5 flex size-4 shrink-0">
                         <input
                             type="checkbox"
                             checked={is_remembered}
                             onChange={(event) => set_is_remembered(event.target.checked)}
-                            className="peer size-full cursor-pointer appearance-none rounded-[4px] border border-[#b9c8be] bg-white outline-none checked:border-agap-700 checked:bg-agap-700 focus-visible:ring-2 focus-visible:ring-agap-700/30"
+                            className="peer size-full cursor-pointer appearance-none rounded-[2px] border border-[#767676] bg-white outline-none checked:border-agap-700 checked:bg-agap-700 focus-visible:ring-2 focus-visible:ring-agap-700/30"
                         />
                         <svg
                             viewBox="0 0 24 24"
@@ -109,30 +117,20 @@ export function Login_form() {
                 <button
                     type="submit"
                     disabled={is_submitting}
-                    className="mt-5 flex h-[50px] w-full items-center justify-center gap-2.5 rounded-xl bg-agap-700 text-sm font-semibold text-white shadow-[0_10px_20px_-8px_rgba(24,77,52,0.55)] outline-none transition hover:bg-agap-900 focus-visible:ring-2 focus-visible:ring-agap-700/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
+                    className="flex w-full items-center justify-center gap-[9px] rounded-[10px] bg-agap-700 px-4 py-3.5 text-xs font-semibold leading-[18px] text-white outline-none drop-shadow-[0_7px_10px_rgba(27,94,59,0.18)] transition hover:bg-agap-900 focus-visible:ring-2 focus-visible:ring-agap-700/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                     {is_submitting ? "Signing in…" : "Sign in"}
-                    {!is_submitting && (
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden="true"
-                            className="size-4"
-                        >
-                            <path d="M5 12h14" />
-                            <path d="m12 5 7 7-7 7" />
-                        </svg>
+                    {is_submitting ? (
+                        <span aria-hidden="true" className="size-[18px]" />
+                    ) : (
+                        <Image src="/login/icon_arrow_right.svg" alt="" width={18} height={18} />
                     )}
                 </button>
             </form>
 
-            <p className="mt-14 text-center text-[13px] text-agap-muted lg:mt-28">
+            <p className="mt-[90px] text-center text-[11px] leading-[16.5px] text-agap-muted">
                 New to AGAP?{" "}
-                <Link href="/request-account" className="font-bold text-agap-700 underline underline-offset-2">
+                <Link href="/request-account" className="font-semibold text-agap-700 underline">
                     Request an account
                 </Link>
             </p>

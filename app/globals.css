@@ -1,22 +1,28 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-agap-900: #184d34;
+  --color-agap-900: #164c31;
   /* left brand panel */
-  --color-agap-700: #1d5c3e;
+  --color-agap-700: #1b5e3b;
   /* button + links */
-  --color-agap-500: #3aa86b;
+  --color-agap-500: #3f9f63;
   /* "WELCOME BACK" eyebrow */
-  --color-agap-300: #a9dab6;
-  /* logo + feature icons */
-  --color-agap-ink: #173f2c;
-  /* headings + labels */
-  --color-agap-muted: #758579;
-  /* helper text */
-  --color-agap-line: #dfe8e2;
+  --color-agap-300: #a7d7b0;
+  /* logo, brand subtitle, brand panel lines */
+  --color-agap-200: #c9e3cf;
+  /* brand panel body text */
+  --color-agap-100: #dff1e3;
+  /* brand panel feature list text */
+  --color-agap-ink: #183d2b;
+  /* headings + input text */
+  --color-agap-muted: #68786d;
+  /* labels + helper text */
+  --color-agap-line: #dce8df;
   /* input borders */
-  --color-agap-mist: #f3f7f4;
+  --color-agap-field: #fbfdfb;
+  /* input background */
+  --color-agap-mist: #f4f8f4;
   /* right panel background */
 
-  --font-sans: var(--font_outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font_poppins), ui-sans-serif, system-ui, sans-serif;
 }
