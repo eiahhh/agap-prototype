@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useActionState, useState } from "react";
+import { login, type login_form_state } from "@/app/login/actions";
 
 const input_field_class =
     "h-[43.6px] w-full rounded-[10px] border-[0.8px] border-agap-line bg-agap-field px-[13px] text-xs font-medium text-agap-ink " +
@@ -12,23 +13,20 @@ const label_class = "text-[11px] font-medium leading-[16.5px] text-agap-muted";
 
 const inline_link_class = "text-[10px] font-semibold leading-[15px] text-agap-700 underline";
 
+const error_text_class = "mt-1.5 text-[11px] leading-[16.5px] text-red-700";
+
+const initial_state: login_form_state = {};
+
 export function Login_form() {
+    const [state, form_action, is_submitting] = useActionState(login, initial_state);
     const [email_value, set_email_value] = useState("");
     const [password_value, set_password_value] = useState("");
     const [is_password_visible, set_is_password_visible] = useState(false);
     const [is_remembered, set_is_remembered] = useState(false);
-    const [is_submitting, set_is_submitting] = useState(false);
 
-    async function handle_submit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        set_is_submitting(true);
-
-        try {
-            await new Promise((resolve) => setTimeout(resolve, 800));
-        } finally {
-            set_is_submitting(false);
-        }
-    }
+    const email_error = state.field_errors?.email;
+    const password_error = state.field_errors?.password;
+    const error_border_class = "border-red-600 focus:border-red-600 focus:ring-red-600/15";
 
     return (
         <div className="w-full max-w-[440px]">
@@ -40,7 +38,16 @@ export function Login_form() {
             </h1>
             <p className="pt-2 text-xs leading-[18px] text-agap-muted">Use your CDRRMO-issued email to continue.</p>
 
-            <form onSubmit={handle_submit} className="mt-[26px] flex flex-col gap-4">
+            <form action={form_action} noValidate className="mt-[26px] flex flex-col gap-4">
+                {state.form_error && (
+                    <p
+                        role="alert"
+                        className="rounded-[10px] border-[0.8px] border-red-200 bg-red-50 px-[13px] py-2.5 text-[11px] font-medium leading-[16.5px] text-red-700"
+                    >
+                        {state.form_error}
+                    </p>
+                )}
+
                 <div>
                     <label htmlFor="email" className={`block ${label_class}`}>
                         Email address
@@ -54,8 +61,15 @@ export function Login_form() {
                         placeholder="name@cdrrmo.gov.ph"
                         value={email_value}
                         onChange={(event) => set_email_value(event.target.value)}
-                        className={`mt-1.5 ${input_field_class}`}
+                        aria-invalid={email_error ? true : undefined}
+                        aria-describedby={email_error ? "email-error" : undefined}
+                        className={`mt-1.5 ${input_field_class} ${email_error ? error_border_class : ""}`}
                     />
+                    {email_error && (
+                        <p id="email-error" className={error_text_class}>
+                            {email_error}
+                        </p>
+                    )}
                 </div>
 
                 <div>
@@ -77,7 +91,9 @@ export function Login_form() {
                             placeholder="Enter your password"
                             value={password_value}
                             onChange={(event) => set_password_value(event.target.value)}
-                            className={`pr-[62px] ${input_field_class}`}
+                            aria-invalid={password_error ? true : undefined}
+                            aria-describedby={password_error ? "password-error" : undefined}
+                            className={`pr-[62px] ${input_field_class} ${password_error ? error_border_class : ""}`}
                         />
                         <button
                             type="button"
@@ -88,12 +104,18 @@ export function Login_form() {
                             {is_password_visible ? "Hide" : "Show"}
                         </button>
                     </div>
+                    {password_error && (
+                        <p id="password-error" className={error_text_class}>
+                            {password_error}
+                        </p>
+                    )}
                 </div>
 
                 <label className="flex w-fit cursor-pointer items-start gap-2.5 text-[11px] font-medium leading-[17.6px] text-agap-muted">
                     <span className="relative mt-0.5 flex size-4 shrink-0">
                         <input
                             type="checkbox"
+                            name="remember"
                             checked={is_remembered}
                             onChange={(event) => set_is_remembered(event.target.checked)}
                             className="peer size-full cursor-pointer appearance-none rounded-[2px] border border-[#767676] bg-white outline-none checked:border-agap-700 checked:bg-agap-700 focus-visible:ring-2 focus-visible:ring-agap-700/30"
