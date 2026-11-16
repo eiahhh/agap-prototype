@@ -2,25 +2,31 @@ type agap_logo_props = {
     tone?: "light" | "dark";
 };
 
+// Logo mark: a rounded square turned 45° with three overlapping circles,
+// matching the Figma "AGAP" mark.
 export function Agap_logo({ tone = "light" }: agap_logo_props) {
     const is_light = tone === "light";
+    const mark_color = is_light ? "bg-agap-300" : "bg-agap-700";
 
     return (
-        <div className="flex items-center gap-2.5">
-            <svg
-                viewBox="0 0 40 44"
-                fill="currentColor"
-                aria-hidden="true"
-                className={`h-11 w-10 shrink-0 ${is_light ? "text-agap-300" : "text-agap-700"}`}
-            >
-                <path d="M20 9 C18 4 13 2 9.5 3.5 C4 6 1 12 2.5 20 C4 28 9 33 12 38 C13.5 40.5 15.5 42 17.5 42 C19 42 19.7 40.5 20 39.5 C20.3 40.5 21 42 22.5 42 C24.5 42 26.5 40.5 28 38 C31 33 36 28 37.5 20 C39 12 36 6 30.5 3.5 C27 2 22 4 20 9 Z" />
-            </svg>
+        <div className="flex items-center gap-[11px]">
+            <div aria-hidden="true" className="relative size-[31px] shrink-0">
+                <div
+                    className={`absolute inset-0 rotate-45 rounded-t-[15.5px] rounded-b-[14.88px] ${mark_color}`}
+                >
+                    <span className={`absolute -left-1.5 top-[5px] size-5 rounded-full ${mark_color}`} />
+                    <span className={`absolute -top-1.5 left-[5px] size-5 rounded-full ${mark_color}`} />
+                    <span className={`absolute left-3 top-3 size-5 rounded-full ${mark_color}`} />
+                </div>
+            </div>
 
             <div>
-                <p className={`text-2xl font-bold leading-6 tracking-tight ${is_light ? "text-white" : "text-agap-ink"}`}>
+                <p
+                    className={`text-[22px] font-bold leading-[33px] tracking-[-0.88px] ${is_light ? "text-white" : "text-agap-ink"}`}
+                >
                     AGAP
                 </p>
-                <p className={`mt-2 text-[11px] leading-[14px] ${is_light ? "text-white/60" : "text-agap-muted"}`}>
+                <p className={`text-[10px] leading-[15px] ${is_light ? "text-agap-300" : "text-agap-muted"}`}>
                     Alert &amp; Guidance Portal
                 </p>
             </div>
