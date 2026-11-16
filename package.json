@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:e2e": "playwright test",
+    "test:report": "playwright show-report",
+    "qa:report": "node scripts/generate-qa-report.mjs"
   },
   "dependencies": {
     "next": "16.4.6",
