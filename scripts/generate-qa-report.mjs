@@ -3,6 +3,7 @@ import path from "path";
 
 const resultsPath = path.resolve(process.cwd(), "test-results/results.json");
 const outputPath = path.resolve(process.cwd(), "QA_REPORT.md");
+const historyDir = path.resolve(process.cwd(), "qa-reports");
 
 if (!fs.existsSync(resultsPath)) {
   console.error(`Results file not found at ${resultsPath}. Please run the tests first.`);
@@ -118,6 +119,24 @@ report += `
 - Traces & videos located in: \`test-results/\`
 `;
 
+// Ensure qa-reports history directory exists
+if (!fs.existsSync(historyDir)) {
+  fs.mkdirSync(historyDir, { recursive: true });
+}
+
+// Create filename-safe timestamp: YYYY-MM-DD_HH-mm-ss
+const now = new Date();
+const pad = (n) => String(n).padStart(2, "0");
+const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+const historyFilename = `QA_REPORT_${dateStr}.md`;
+const historyPath = path.join(historyDir, historyFilename);
+
+// 1. Write the latest report
 fs.writeFileSync(outputPath, report, "utf-8");
-console.log(`✅ QA report successfully generated at ${outputPath}`);
+
+// 2. Write the timestamped historical archive
+fs.writeFileSync(historyPath, report, "utf-8");
+
+console.log(`✅ Latest QA report updated at: ${outputPath}`);
+console.log(`📁 Archived report saved at:   ${historyPath}`);
 
