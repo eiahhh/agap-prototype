@@ -23,9 +23,13 @@ const demo_users: demo_user[] = [
     { id: "u_it", email: "it@cdrrmo.gov.ph", password: "ItStaff@2026", name: "IT Staff", role: "it_staff" },
 ];
 
-export function find_user_by_credentials(email: string, password: string): demo_user | null {
+export function find_user_by_email(email: string): demo_user | null {
     const normalized_email = email.trim().toLowerCase();
-    const user = demo_users.find((candidate) => candidate.email === normalized_email);
+    return demo_users.find((candidate) => candidate.email === normalized_email) ?? null;
+}
+
+export function find_user_by_credentials(email: string, password: string): demo_user | null {
+    const user = find_user_by_email(email);
     return user && user.password === password ? user : null;
 }
 

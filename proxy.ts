@@ -2,10 +2,10 @@ import { NextResponse, type NextRequest } from "next/server";
 import { session_cookie_name, verify_session } from "@/lib/auth/session_token";
 
 const protected_prefixes = ["/dashboard"];
-const guest_only_paths = ["/login"];
+const guest_only_paths = ["/login", "/register"];
 
 // Optimistic route check: signed-out users can't reach protected pages,
-// signed-in users skip the login page. Pages still verify the session themselves.
+// signed-in users skip the login and register pages. Pages still verify the session themselves.
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const session = await verify_session(request.cookies.get(session_cookie_name)?.value);
@@ -22,5 +22,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/login"],
+    matcher: ["/dashboard/:path*", "/login", "/register"],
 };
