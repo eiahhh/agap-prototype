@@ -82,3 +82,14 @@ describe("login form validation messages", () => {
         expect(password_input.getAttribute("type")).toBe("password");
     });
 });
+
+describe("login form state after an error", () => {
+    it("keeps 'Keep me signed in' ticked after a failed sign-in", async () => {
+        render(<Login_form />);
+        fireEvent.click(screen.getByRole("checkbox"));
+        fill_and_submit("admin@cdrrmo.gov.ph", "WrongPass1");
+
+        await screen.findByRole("alert");
+        expect(screen.getByRole("checkbox")).toHaveProperty("checked", true);
+    });
+});

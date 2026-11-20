@@ -4,16 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { login, type login_form_state } from "@/app/login/actions";
-
-const input_field_class =
-    "h-[43.6px] w-full rounded-[10px] border-[0.8px] border-agap-line bg-agap-field px-[13px] text-xs font-medium text-agap-ink " +
-    "outline-none transition placeholder:text-agap-ink/50 focus:border-agap-700 focus:ring-2 focus:ring-agap-700/15";
-
-const label_class = "text-[11px] font-medium leading-[16.5px] text-agap-muted";
-
-const inline_link_class = "text-[10px] font-semibold leading-[15px] text-agap-700 underline";
-
-const error_text_class = "mt-1.5 text-[11px] leading-[16.5px] text-red-700";
+import {
+    checkbox_input_class,
+    error_border_class,
+    error_text_class,
+    inline_link_class,
+    input_field_class,
+    label_class,
+    primary_button_class,
+} from "@/components/auth/form_styles";
+import { submit_without_reset } from "@/components/auth/submit_without_reset";
 
 const initial_state: login_form_state = {};
 
@@ -26,7 +26,6 @@ export function Login_form() {
 
     const email_error = state.field_errors?.email;
     const password_error = state.field_errors?.password;
-    const error_border_class = "border-red-600 focus:border-red-600 focus:ring-red-600/15";
 
     return (
         <div className="w-full max-w-[440px]">
@@ -38,7 +37,7 @@ export function Login_form() {
             </h1>
             <p className="pt-2 text-xs leading-[18px] text-agap-muted">Use your CDRRMO-issued email to continue.</p>
 
-            <form action={form_action} noValidate className="mt-[26px] flex flex-col gap-4">
+            <form action={form_action} onSubmit={submit_without_reset(form_action)} noValidate className="mt-[26px] flex flex-col gap-4">
                 {state.form_error && (
                     <p
                         role="alert"
@@ -118,7 +117,7 @@ export function Login_form() {
                             name="remember"
                             checked={is_remembered}
                             onChange={(event) => set_is_remembered(event.target.checked)}
-                            className="peer size-full cursor-pointer appearance-none rounded-[2px] border border-[#767676] bg-white outline-none checked:border-agap-700 checked:bg-agap-700 focus-visible:ring-2 focus-visible:ring-agap-700/30"
+                            className={checkbox_input_class}
                         />
                         <svg
                             viewBox="0 0 24 24"
@@ -139,7 +138,7 @@ export function Login_form() {
                 <button
                     type="submit"
                     disabled={is_submitting}
-                    className="flex w-full items-center justify-center gap-[9px] rounded-[10px] bg-agap-700 px-4 py-3.5 text-xs font-semibold leading-[18px] text-white outline-none drop-shadow-[0_7px_10px_rgba(27,94,59,0.18)] transition hover:bg-agap-900 focus-visible:ring-2 focus-visible:ring-agap-700/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
+                    className={`w-full py-3.5 text-xs leading-[18px] ${primary_button_class}`}
                 >
                     {is_submitting ? "Signing in…" : "Sign in"}
                     {is_submitting ? (
@@ -152,7 +151,7 @@ export function Login_form() {
 
             <p className="mt-[90px] text-center text-[11px] leading-[16.5px] text-agap-muted">
                 New to AGAP?{" "}
-                <Link href="/request-account" className="font-semibold text-agap-700 underline">
+                <Link href="/register" className="font-semibold text-agap-700 underline">
                     Request an account
                 </Link>
             </p>

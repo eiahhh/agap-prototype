@@ -1,8 +1,8 @@
+import Link from "next/link";
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
 import { Agap_logo } from "@/components/login/agap_logo";
-import { find_user_by_id, role_labels } from "@/lib/auth/demo_users";
-import { get_session } from "@/lib/auth/session";
+import { require_user } from "@/lib/auth/current_user";
+import { role_labels } from "@/lib/auth/demo_users";
 import { logout } from "@/app/login/actions";
 
 // Placeholder landing page after sign-in. The role dashboards from Figma
@@ -19,9 +19,7 @@ export default function dashboard_page() {
 }
 
 async function Signed_in_card() {
-    const session = await get_session();
-    const user = session ? find_user_by_id(session.user_id) : null;
-    if (!user) redirect("/login");
+    const user = await require_user();
 
     return (
         <section className="w-full max-w-[440px] rounded-[10px] border-[0.8px] border-agap-line bg-agap-field p-6 text-center">
@@ -32,6 +30,15 @@ async function Signed_in_card() {
             <p className="mt-1 text-xs text-agap-muted">
                 {user.email} · {role_labels[user.role]}
             </p>
+
+            {user.role === "super_admin" && (
+                <Link
+                    href="/dashboard/requests"
+                    className="mt-4 inline-block text-[11px] font-semibold leading-[16.5px] text-agap-700 underline"
+                >
+                    Review account requests
+                </Link>
+            )}
 
             <form action={logout} className="mt-6">
                 <button
