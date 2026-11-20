@@ -46,6 +46,8 @@ export async function submit_account_request(input: {
     password: string;
 }): Promise<boolean> {
     const email = input.email.trim().toLowerCase();
+    // Hash before the duplicate check so both paths take the same time.
+    const password_hash = await hash_password(input.password);
     const is_taken = find_user_by_email(email) !== null || account_requests.some((request) => request.email === email);
     if (is_taken) return false;
 
@@ -55,7 +57,7 @@ export async function submit_account_request(input: {
         email,
         role: input.role,
         employee_id: input.employee_id,
-        password_hash: await hash_password(input.password),
+        password_hash,
         status: "pending",
         created_at: Date.now(),
     });
