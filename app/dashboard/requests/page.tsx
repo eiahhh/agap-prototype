@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { Review_buttons } from "@/components/requests/review_buttons";
 import { list_pending_account_requests, type account_request } from "@/lib/auth/account_requests";
 import { require_super_admin } from "@/lib/auth/current_user";
 import { role_labels } from "@/lib/auth/demo_users";
@@ -81,6 +82,10 @@ function Request_card({ request }: { request: account_request }) {
                 <Detail label="Requested role" value={role_labels[request.role]} />
                 <Detail label="Employee ID" value={request.employee_id} />
             </dl>
+            <form className="mt-4 flex justify-end">
+                <input type="hidden" name="request_id" value={request.id} />
+                <Review_buttons full_name={request.full_name} />
+            </form>
         </li>
     );
 }

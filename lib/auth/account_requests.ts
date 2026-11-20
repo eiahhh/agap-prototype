@@ -20,9 +20,14 @@ export type account_request = {
     role: requestable_role;
     employee_id: string;
     password_hash: string; // "salt:hash", both hex
-    status: "pending";
+    status: account_request_status;
     created_at: number;
+    reviewed_at?: number;
+    reviewed_by?: string; // id of the Super Admin who approved or rejected it
 };
+
+export type account_request_status = "pending" | "approved" | "rejected";
+export type review_decision = Exclude<account_request_status, "pending">;
 
 const account_requests: account_request[] = [];
 
@@ -73,6 +78,18 @@ export function list_pending_account_requests(): account_request[] {
     return account_requests
         .filter((request) => request.status === "pending")
         .sort((first, second) => first.created_at - second.created_at);
+}
+
+// Marks a pending request as approved or rejected. Returns false when the id is unknown
+// or the request was already reviewed, so a decision can't be changed after the fact.
+export function review_account_request(request_id: string, decision: review_decision, reviewer_id: string): boolean {
+    const request = account_requests.find((candidate) => candidate.id === request_id);
+    if (!request || request.status !== "pending") return false;
+
+    request.status = decision;
+    request.reviewed_at = Date.now();
+    request.reviewed_by = reviewer_id;
+    return true;
 }
 
 // Test helper.
