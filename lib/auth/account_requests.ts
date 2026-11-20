@@ -68,6 +68,13 @@ export function list_account_requests(): readonly account_request[] {
     return account_requests;
 }
 
+// Oldest first, so requests are reviewed in the order they came in.
+export function list_pending_account_requests(): account_request[] {
+    return account_requests
+        .filter((request) => request.status === "pending")
+        .sort((first, second) => first.created_at - second.created_at);
+}
+
 // Test helper.
 export function clear_account_requests() {
     account_requests.length = 0;
