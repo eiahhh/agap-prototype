@@ -18,7 +18,7 @@ const submitted_at_format = new Intl.DateTimeFormat("en-PH", {
 
 export default function account_requests_page() {
     return (
-        <main className="min-h-screen bg-agap-mist px-6 py-10">
+        <main className="flex-1 px-6 py-10">
             <div className="mx-auto w-full max-w-[880px]">
                 <Link href="/dashboard" className="text-[11px] font-semibold leading-[16.5px] text-agap-700 underline">
                     Back to dashboard
