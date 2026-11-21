@@ -1,7 +1,7 @@
 // Signed session token: base64url(JSON payload) + "." + base64url(HMAC-SHA256 signature).
 // Uses Web Crypto only, so it works both in server code and in proxy.ts.
 
-import type { user_role } from "./demo_users";
+import { is_user_role, type user_role } from "./demo_users";
 
 export const session_cookie_name = "agap_session";
 
@@ -60,9 +60,21 @@ export async function verify_session(token: string | undefined): Promise<session
         );
         if (!is_valid) return null;
 
-        const payload = JSON.parse(text_decoder.decode(from_base64url(body))) as session_payload;
+        const payload: unknown = JSON.parse(text_decoder.decode(from_base64url(body)));
+        if (!is_session_payload(payload)) return null;
         return payload.expires_at > Date.now() ? payload : null;
     } catch {
         return null;
     }
+}
+
+// A correctly signed token can still carry a payload we don't understand (e.g. a role that was removed).
+function is_session_payload(value: unknown): value is session_payload {
+    if (typeof value !== "object" || value === null) return false;
+    const candidate = value as Record<string, unknown>;
+    return (
+        typeof candidate.user_id === "string" &&
+        is_user_role(candidate.role) &&
+        typeof candidate.expires_at === "number"
+    );
 }

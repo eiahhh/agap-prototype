@@ -1,7 +1,13 @@
 // PROTOTYPE ONLY: hardcoded demo accounts, one per role.
 // Replace this module with a real user store / auth provider before production.
 
-export type user_role = "cdrrmo" | "super_admin" | "it_staff";
+export const user_roles = ["cdrrmo", "super_admin", "it_staff"] as const;
+
+export type user_role = (typeof user_roles)[number];
+
+export function is_user_role(value: unknown): value is user_role {
+    return typeof value === "string" && (user_roles as readonly string[]).includes(value);
+}
 
 export type demo_user = {
     id: string;

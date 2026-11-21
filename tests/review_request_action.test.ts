@@ -152,12 +152,12 @@ describe("review actions: role check", () => {
         expect(request.status).toBe("pending");
     });
 
-    it("uses the user's real role, not the role written in the session", async () => {
+    it("sends a session whose role doesn't match the user back to login", async () => {
         const request = await add_request();
         // Validly signed, but u_cdrrmo is not a Super Admin in the user list.
         await sign_in_as("u_cdrrmo", "super_admin");
 
-        await expect(approve_request(form_for(request.id))).rejects.toThrow("NEXT_REDIRECT:/dashboard");
+        await expect(approve_request(form_for(request.id))).rejects.toThrow("NEXT_REDIRECT:/login");
 
         expect(request.status).toBe("pending");
     });

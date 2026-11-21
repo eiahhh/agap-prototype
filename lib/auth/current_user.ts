@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
-import { find_user_by_id, type demo_user } from "./demo_users";
+import type { demo_user } from "./demo_users";
 import { get_session } from "./session";
+import { find_session_user } from "./session_user";
 
-// Returns the signed-in user, or sends the visitor to the login page.
+// Returns the signed-in user, or sends the visitor to the login page when the session
+// is missing, expired, tampered with, or its role doesn't match the account.
 export async function require_user(): Promise<demo_user> {
-    const session = await get_session();
-    const user = session ? find_user_by_id(session.user_id) : null;
+    const user = find_session_user(await get_session());
     if (!user) redirect("/login");
     return user;
 }
