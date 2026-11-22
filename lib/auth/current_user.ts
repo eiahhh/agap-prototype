@@ -11,9 +11,9 @@ export async function require_user(): Promise<demo_user> {
     return user;
 }
 
-// Only Super Admins can review account requests. Everyone else goes back to the dashboard.
+// Only Super Admins can review account requests. Everyone else sees the unauthorized page.
 export async function require_super_admin(): Promise<demo_user> {
     const user = await require_user();
-    if (user.role !== "super_admin") redirect("/dashboard");
+    if (user.role !== "super_admin") redirect("/unauthorized");
     return user;
 }

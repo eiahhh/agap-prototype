@@ -20,7 +20,7 @@ export async function proxy(request: NextRequest) {
     } else if (allowed_roles && !user) {
         response = NextResponse.redirect(new URL("/login", request.nextUrl));
     } else if (allowed_roles && user && !allowed_roles.includes(user.role)) {
-        response = NextResponse.redirect(new URL("/dashboard", request.nextUrl));
+        response = NextResponse.redirect(new URL("/unauthorized", request.nextUrl));
     } else if (user && guest_only_paths.includes(pathname)) {
         response = NextResponse.redirect(new URL("/dashboard", request.nextUrl));
     } else {

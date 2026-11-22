@@ -109,12 +109,12 @@ describe("review actions: role check", () => {
     it.each([
         ["CDRRMO Personnel", "u_cdrrmo", "cdrrmo"],
         ["IT Staff", "u_it", "it_staff"],
-    ] as const)("sends %s back to the dashboard without changing anything", async (_label, user_id, role) => {
+    ] as const)("sends %s to the unauthorized page without changing anything", async (_label, user_id, role) => {
         const request = await add_request();
         await sign_in_as(user_id, role);
 
-        await expect(approve_request(form_for(request.id))).rejects.toThrow("NEXT_REDIRECT:/dashboard");
-        await expect(reject_request(form_for(request.id))).rejects.toThrow("NEXT_REDIRECT:/dashboard");
+        await expect(approve_request(form_for(request.id))).rejects.toThrow("NEXT_REDIRECT:/unauthorized");
+        await expect(reject_request(form_for(request.id))).rejects.toThrow("NEXT_REDIRECT:/unauthorized");
 
         expect(request.status).toBe("pending");
         expect(refresh_mock).not.toHaveBeenCalled();
