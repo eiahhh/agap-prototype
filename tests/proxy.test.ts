@@ -46,4 +46,20 @@ describe("proxy", () => {
     it("runs on the forgot password page", () => {
         expect(config.matcher).toContain("/forgot-password");
     });
+
+    it("lets signed-out visitors open the register page", async () => {
+        const response = await proxy(await request_for("/register", false));
+
+        expect(redirect_target(response)).toBeNull();
+    });
+
+    it("sends signed-in users from the register page to the dashboard", async () => {
+        const response = await proxy(await request_for("/register", true));
+
+        expect(redirect_target(response)).toBe("/dashboard");
+    });
+
+    it("runs on the register page", () => {
+        expect(config.matcher).toContain("/register");
+    });
 });
