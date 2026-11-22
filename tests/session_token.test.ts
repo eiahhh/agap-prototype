@@ -46,6 +46,18 @@ describe("session token", () => {
         expect(await verify_session(token)).toBeNull();
     });
 
+    it("rejects a correctly signed token with an unknown role", async () => {
+        const token = await sign_session(valid_payload({ role: "guest" as session_payload["role"] }));
+
+        expect(await verify_session(token)).toBeNull();
+    });
+
+    it("rejects a correctly signed token with missing fields", async () => {
+        const token = await sign_session({ role: "cdrrmo", expires_at: Date.now() + hour_ms } as session_payload);
+
+        expect(await verify_session(token)).toBeNull();
+    });
+
     it("rejects a token signed with a different secret", async () => {
         vi.stubEnv("SESSION_SECRET", "a-completely-different-secret-0123456789xyz");
         const token = await sign_session(valid_payload());
