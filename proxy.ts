@@ -14,7 +14,10 @@ export async function proxy(request: NextRequest) {
     const allowed_roles = allowed_roles_for(pathname);
 
     let response: NextResponse;
-    if (allowed_roles && !user) {
+    if (pathname === "/") {
+        // The home page has no content of its own: send visitors to where they belong.
+        response = NextResponse.redirect(new URL(user ? "/dashboard" : "/login", request.nextUrl));
+    } else if (allowed_roles && !user) {
         response = NextResponse.redirect(new URL("/login", request.nextUrl));
     } else if (allowed_roles && user && !allowed_roles.includes(user.role)) {
         response = NextResponse.redirect(new URL("/dashboard", request.nextUrl));
