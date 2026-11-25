@@ -28,7 +28,7 @@ async function render_dashboard() {
 }
 
 const view_markers = {
-    cdrrmo: "CDRRMO dashboard coming soon.",
+    cdrrmo: "Live weather & risk monitoring",
     super_admin: "Pending account requests",
     it_staff: "IT Staff dashboard coming soon.",
 } as const;
