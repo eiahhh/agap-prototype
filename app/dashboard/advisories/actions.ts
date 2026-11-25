@@ -3,8 +3,9 @@
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { require_cdrrmo } from "@/lib/auth/current_user";
-import { cancel_advisory, publish_advisory, update_advisory } from "@/lib/cdrrmo/advisories";
+import { cancel_advisory, find_advisory, publish_advisory, update_advisory } from "@/lib/cdrrmo/advisories";
 import { validate_advisory_form, type advisory_form_state } from "@/lib/cdrrmo/advisory_form";
+import { add_notification } from "@/lib/cdrrmo/notifications";
 
 // Actions can be called directly with a POST, not only from the page,
 // so each one checks for CDRRMO personnel again instead of trusting the page.
@@ -28,7 +29,13 @@ export async function publish_advisory_action(form_data: FormData) {
     const advisory_id = String(form_data.get("advisory_id") ?? "");
     if (!advisory_id) return;
 
-    publish_advisory(advisory_id, user.id);
+    if (publish_advisory(advisory_id, user.id)) {
+        add_notification({
+            kind: "advisory",
+            title: "Advisory published",
+            body: `“${find_advisory(advisory_id)!.title}” is now being sent to the portal, SMS, Facebook and schools.`,
+        });
+    }
     refresh();
 }
 
@@ -37,6 +44,12 @@ export async function cancel_advisory_action(form_data: FormData) {
     const advisory_id = String(form_data.get("advisory_id") ?? "");
     if (!advisory_id) return;
 
-    cancel_advisory(advisory_id, user.id);
+    if (cancel_advisory(advisory_id, user.id)) {
+        add_notification({
+            kind: "advisory",
+            title: "Advisory cancelled",
+            body: `“${find_advisory(advisory_id)!.title}” was cancelled and will not be sent.`,
+        });
+    }
     refresh();
 }
