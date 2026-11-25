@@ -21,7 +21,7 @@ const status_badge_class = {
 } as const;
 
 // Drafted or scheduled class suspension advisories awaiting final review, with quick actions.
-export function Pending_advisories({ advisories }: { advisories: advisory[] }) {
+export function Pending_advisories({ advisories, to_review_count = 0 }: { advisories: advisory[]; to_review_count?: number }) {
     return (
         <section aria-labelledby="advisories-heading" className="mt-8">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -40,6 +40,21 @@ export function Pending_advisories({ advisories }: { advisories: advisory[] }) {
                     </Link>
                 </div>
             </div>
+
+            {to_review_count > 0 && (
+                <Link
+                    href="/dashboard/reviews"
+                    className="mt-3 flex items-center justify-between gap-3 rounded-[10px] border-[0.8px] border-violet-200 bg-violet-50 px-4 py-3 text-xs text-violet-950 transition hover:border-violet-400"
+                >
+                    <span>
+                        <span className="font-semibold">
+                            {to_review_count} {to_review_count === 1 ? "notice is" : "notices are"} waiting for your review
+                        </span>{" "}
+                        before they can be published.
+                    </span>
+                    <span aria-hidden className="font-semibold">Review →</span>
+                </Link>
+            )}
 
             {advisories.length === 0 ? (
                 <Widget_card title="Pending advisories" className="mt-3">
