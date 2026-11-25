@@ -94,7 +94,11 @@ describe("Announcement_list", () => {
             const card = within(cards[index]);
             const pending = item.status === "draft" || item.status === "scheduled";
             expect(card.queryByRole("link", { name: `Edit ${item.title}` }) !== null).toBe(pending);
-            expect(card.queryByRole("button", { name: `Publish ${item.title} now` }) !== null).toBe(pending);
+            // Publishing needs approval; other pending notices show a review step instead.
+            expect(card.queryByRole("button", { name: `Publish ${item.title} now` }) !== null).toBe(
+                pending && item.review?.state === "approved",
+            );
+            expect(card.queryByRole("button", { name: `Cancel ${item.title}` }) !== null).toBe(pending);
         }
 
         const scheduled = items.findIndex((item) => item.status === "scheduled");

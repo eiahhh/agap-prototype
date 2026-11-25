@@ -5,6 +5,7 @@ import {
     type advisory,
 } from "@/lib/cdrrmo/advisories";
 import { primary_button_class } from "@/components/auth/form_styles";
+import { Review_badge } from "@/components/reviews/review_badge";
 import { Advisory_action_buttons } from "./advisory_action_buttons";
 import { Widget_card } from "./widget_card";
 
@@ -67,6 +68,7 @@ function Advisory_card({ item }: { item: advisory }) {
                     >
                         {advisory_status_labels[item.status]}
                     </span>
+                    <Review_badge item={item} />
                     <h3 className="mt-2 text-sm font-medium text-agap-ink">{item.title}</h3>
                 </div>
                 <p className="text-[11px] leading-[16.5px] text-agap-muted">
@@ -98,7 +100,7 @@ function Advisory_card({ item }: { item: advisory }) {
                 </Link>
                 <form className="flex">
                     <input type="hidden" name="advisory_id" value={item.id} />
-                    <Advisory_action_buttons title={item.title} />
+                    <Advisory_action_buttons title={item.title} review_state={item.review?.state} />
                 </form>
             </div>
         </li>

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { announcement_status_badge_class, Archived_badge } from "@/components/announcements/announcement_list";
 import { Archive_button } from "@/components/announcements/archive_button";
 import { primary_button_class } from "@/components/auth/form_styles";
+import { Review_badge } from "@/components/reviews/review_badge";
 import { Advisory_action_buttons } from "@/components/cdrrmo/advisory_action_buttons";
 import { Delivery_cell, delivery_status_badge_class } from "@/components/cdrrmo/recent_announcements";
 import { require_cdrrmo } from "@/lib/auth/current_user";
@@ -66,6 +67,7 @@ async function Announcement({ params }: { params: Promise<{ id: string }> }) {
                 {advisory_status_labels[item.status]}
             </span>
             {is_archived(item) && <Archived_badge />}
+            {is_pending(item) && <Review_badge item={item} />}
             {(item.revisions?.length ?? 0) > 0 && (
                 <span className="ml-2 inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-semibold text-amber-900">
                     Updated
@@ -98,7 +100,7 @@ async function Announcement({ params }: { params: Promise<{ id: string }> }) {
                         </Link>
                         <form className="flex">
                             <input type="hidden" name="advisory_id" value={item.id} />
-                            <Advisory_action_buttons title={item.title} />
+                            <Advisory_action_buttons title={item.title} review_state={item.review?.state} />
                         </form>
                     </>
                 )}

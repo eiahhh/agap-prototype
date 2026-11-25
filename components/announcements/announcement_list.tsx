@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Review_badge } from "@/components/reviews/review_badge";
 import { Advisory_action_buttons } from "@/components/cdrrmo/advisory_action_buttons";
 import {
     advisory_level_labels,
@@ -54,6 +55,7 @@ export function Announcement_list({ items, empty_label }: { items: advisory[]; e
                                 {advisory_status_labels[item.status]}
                             </span>
                             {is_archived(item) && <Archived_badge />}
+                            {is_pending(item) && <Review_badge item={item} />}
                             <h3 className="mt-2 text-sm font-medium text-agap-ink">
                                 <Link href={`/dashboard/announcements/${item.id}`} className="hover:text-agap-700 hover:underline">
                                     {item.title}
@@ -88,7 +90,7 @@ export function Announcement_list({ items, empty_label }: { items: advisory[]; e
                             </Link>
                             <form className="flex">
                                 <input type="hidden" name="advisory_id" value={item.id} />
-                                <Advisory_action_buttons title={item.title} />
+                                <Advisory_action_buttons title={item.title} review_state={item.review?.state} />
                             </form>
                         </div>
                     )}
