@@ -2,6 +2,7 @@
 // Replace with a real database table before production.
 
 import { randomUUID } from "node:crypto";
+import type { delivery_channel } from "./announcement_tracker";
 
 export const advisory_levels = ["all", "preschool_to_elementary", "preschool_to_high_school", "college"] as const;
 export type advisory_level = (typeof advisory_levels)[number];
@@ -39,6 +40,7 @@ export type advisory = {
     published_at?: number;
     cancelled_at?: number;
     updated_by?: string;
+    failed_channels?: delivery_channel[]; // channels that failed to deliver after publishing
 };
 
 export type advisory_input = {
@@ -84,8 +86,48 @@ function seed(now: number) {
             status: "draft",
             created_at: now - 3 * hour,
         },
+        {
+            title: "Suspension of afternoon classes, Preschool to Elementary",
+            level: "preschool_to_elementary",
+            coverage: "Citywide",
+            message: "Afternoon face-to-face classes for Preschool to Elementary are suspended today due to continuous rain.",
+            status: "published",
+            published_at: now - 8 * minute,
+            created_at: now - 40 * minute,
+        },
+        {
+            title: "Suspension of classes in Barangay Sampaloc IV",
+            level: "all",
+            coverage: "Sampaloc IV",
+            message: "Classes at all levels in Barangay Sampaloc IV are suspended due to drainage overflow along the main road.",
+            status: "published",
+            published_at: now - 2 * hour,
+            created_at: now - 150 * minute,
+            failed_channels: ["facebook"],
+        },
+        {
+            title: "Resumption of classes after Signal No. 1 is lifted",
+            level: "all",
+            coverage: "Citywide",
+            message: "Classes at all levels resume tomorrow, as PAGASA has lifted Tropical Cyclone Wind Signal No. 1 over Cavite.",
+            status: "published",
+            published_at: now - 26 * hour,
+            created_at: now - 27 * hour,
+        },
+        {
+            title: "Suspension of classes, College level",
+            level: "college",
+            coverage: "Citywide",
+            message: "College classes are suspended this morning. This advisory was withdrawn after the rainfall warning was lowered.",
+            status: "cancelled",
+            cancelled_at: now - 5 * hour,
+            created_at: now - 6 * hour,
+        },
     ];
-    for (const sample of samples) advisories.push({ ...sample, id: randomUUID(), updated_at: sample.created_at });
+    for (const sample of samples) {
+        const updated_at = sample.published_at ?? sample.cancelled_at ?? sample.created_at;
+        advisories.push({ ...sample, id: randomUUID(), updated_at });
+    }
 }
 
 // Puts the sample advisories back. Used on first load and by tests.
