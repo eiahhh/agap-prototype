@@ -15,6 +15,7 @@ import {
     parse_record_filter,
     record_outcome_labels,
     record_outcomes,
+    record_search_params,
     records_href,
     type record_filter,
 } from "@/lib/cdrrmo/records";
@@ -77,11 +78,23 @@ async function Records({ search_params }: { search_params: Promise<Record<string
                         {matching.length} {matching.length === 1 ? "record" : "records"}
                         {is_filtered && " match your filters"}
                     </h2>
-                    {is_filtered && (
-                        <Link href="/dashboard/records" className="text-[11px] font-semibold text-agap-700 underline">
-                            Clear filters
-                        </Link>
-                    )}
+                    <div className="flex items-center gap-4">
+                        {is_filtered && (
+                            <Link href="/dashboard/records" className="text-[11px] font-semibold text-agap-700 underline">
+                                Clear filters
+                            </Link>
+                        )}
+                        {matching.length > 0 && (
+                            // A plain link, not <Link>: the browser should download the file, not navigate the app.
+                            <a
+                                href={export_href(filter)}
+                                download
+                                className="flex h-8 items-center rounded-[10px] border-[0.8px] border-agap-line bg-white px-3 text-[11px] font-semibold text-agap-ink transition hover:border-agap-700 hover:text-agap-700"
+                            >
+                                Download CSV
+                            </a>
+                        )}
+                    </div>
                 </div>
                 {rows.length === 0 ? (
                     <p className="py-6 text-center text-xs text-agap-muted">No records match these filters.</p>
@@ -285,4 +298,10 @@ function Activity({ params }: { params: Record<string, string | string[] | undef
             )}
         </>
     );
+}
+
+// Same filters as the page, without the page number: the CSV has every matching record.
+function export_href(filter: record_filter): string {
+    const search = record_search_params({ ...filter, page: 1 }).toString();
+    return search ? `/dashboard/records/export?${search}` : "/dashboard/records/export";
 }
