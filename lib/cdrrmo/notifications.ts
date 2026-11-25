@@ -23,10 +23,11 @@ export type inbox_notification = {
     href?: string; // the page the notification is about
     actor_id?: string; // the officer whose action caused it; it starts as read for them
     read_by: Record<string, number>; // user id → when they read it
+    dismissed_by?: Record<string, number>; // user id → when they cleared it from their inbox
 };
 
 // A notification as one officer sees it.
-export type notification_view = Omit<inbox_notification, "read_by"> & { is_read: boolean };
+export type notification_view = Omit<inbox_notification, "read_by" | "dismissed_by"> & { is_read: boolean; is_dismissed: boolean };
 
 const notifications: inbox_notification[] = [];
 
@@ -115,13 +116,14 @@ export function reset_notifications(now: number = Date.now()) {
 reset_notifications();
 
 function view(item: inbox_notification, user_id: string): notification_view {
-    const { read_by, ...rest } = item;
-    return { ...rest, is_read: read_by[user_id] !== undefined };
+    const { read_by, dismissed_by, ...rest } = item;
+    return { ...rest, is_read: read_by[user_id] !== undefined, is_dismissed: dismissed_by?.[user_id] !== undefined };
 }
 
 export type notification_filter = {
     kind?: notification_kind;
     unread_only?: boolean;
+    dismissed?: boolean; // true lists only cleared notifications; otherwise they're left out
     limit?: number;
 };
 
@@ -130,12 +132,17 @@ export function list_notifications(user_id: string, filter: notification_filter 
     const items = [...notifications]
         .sort((first, second) => second.created_at - first.created_at)
         .map((item) => view(item, user_id))
-        .filter((item) => (filter.kind ? item.kind === filter.kind : true) && (filter.unread_only ? !item.is_read : true));
+        .filter(
+            (item) =>
+                item.is_dismissed === (filter.dismissed ?? false) &&
+                (filter.kind ? item.kind === filter.kind : true) &&
+                (filter.unread_only ? !item.is_read : true),
+        );
     return filter.limit === undefined ? items : items.slice(0, filter.limit);
 }
 
 export function count_unread_notifications(user_id: string): number {
-    return notifications.filter((item) => item.read_by[user_id] === undefined).length;
+    return notifications.filter((item) => item.read_by[user_id] === undefined && item.dismissed_by?.[user_id] === undefined).length;
 }
 
 export function add_notification(
@@ -178,4 +185,33 @@ export function mark_all_notifications_read(user_id: string, now: number = Date.
         }
     }
     return marked;
+}
+
+// Clears a notification from this officer's inbox. Clearing also marks it as read.
+export function dismiss_notification(id: string, user_id: string, now: number = Date.now()): boolean {
+    const item = notifications.find((candidate) => candidate.id === id);
+    if (!item || item.dismissed_by?.[user_id] !== undefined) return false;
+    item.dismissed_by = { ...item.dismissed_by, [user_id]: now };
+    item.read_by[user_id] ??= now;
+    return true;
+}
+
+// Puts a cleared notification back in this officer's inbox.
+export function restore_notification(id: string, user_id: string): boolean {
+    const item = notifications.find((candidate) => candidate.id === id);
+    if (!item || item.dismissed_by?.[user_id] === undefined) return false;
+    delete item.dismissed_by[user_id];
+    return true;
+}
+
+// Clears every notification this officer has already read. Returns how many were cleared.
+export function clear_read_notifications(user_id: string, now: number = Date.now()): number {
+    let cleared = 0;
+    for (const item of notifications) {
+        if (item.read_by[user_id] !== undefined && item.dismissed_by?.[user_id] === undefined) {
+            item.dismissed_by = { ...item.dismissed_by, [user_id]: now };
+            cleared += 1;
+        }
+    }
+    return cleared;
 }

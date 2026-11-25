@@ -3,7 +3,8 @@
 import { notification_kinds, type notification_kind, type notification_view } from "./notifications";
 import { manila_date } from "./weather_history";
 
-export type notification_page_filter = { kind: notification_kind | null; unread_only: boolean };
+// cleared: show the notifications the officer cleared from their inbox instead of the inbox itself.
+export type notification_page_filter = { kind: notification_kind | null; unread_only: boolean; cleared: boolean };
 
 export function parse_notification_filter(params: Record<string, string | string[] | undefined>): notification_page_filter {
     const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
@@ -11,6 +12,7 @@ export function parse_notification_filter(params: Record<string, string | string
     return {
         kind: (notification_kinds as readonly string[]).includes(kind ?? "") ? (kind as notification_kind) : null,
         unread_only: first(params.unread) === "1",
+        cleared: first(params.cleared) === "1",
     };
 }
 
@@ -18,6 +20,7 @@ export function notification_page_href(filter: notification_page_filter): string
     const params = new URLSearchParams();
     if (filter.kind) params.set("kind", filter.kind);
     if (filter.unread_only) params.set("unread", "1");
+    if (filter.cleared) params.set("cleared", "1");
     const search = params.toString();
     return search ? `/dashboard/notifications?${search}` : "/dashboard/notifications";
 }

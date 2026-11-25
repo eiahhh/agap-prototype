@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { mark_all_notifications_read_action } from "@/app/dashboard/notifications/actions";
+import { clear_read_notifications_action, mark_all_notifications_read_action } from "@/app/dashboard/notifications/actions";
 import { Notification_list } from "@/components/notifications/notification_list";
 import { require_cdrrmo } from "@/lib/auth/current_user";
 import { count_unread_notifications, list_notifications, notification_kind_labels, notification_kinds } from "@/lib/cdrrmo/notifications";
@@ -43,7 +43,9 @@ async function Notifications({ search_params }: { search_params: Promise<Record<
     const items = list_notifications(user.id, {
         kind: filter.kind ?? undefined,
         unread_only: filter.unread_only,
+        dismissed: filter.cleared,
     });
+    const has_read = !filter.cleared && list_notifications(user.id).some((item) => item.is_read);
     // The weather reading time doubles as the page clock, like the dashboard.
     const now = get_weather_snapshot().observed_at;
 
@@ -85,19 +87,38 @@ async function Notifications({ search_params }: { search_params: Promise<Record<
                     >
                         Unread only ({unread_count})
                     </Link>
-                    {unread_count > 0 && (
+                    {unread_count > 0 && !filter.cleared && (
                         <form action={mark_all_notifications_read_action}>
                             <button type="submit" className="text-[11px] font-semibold text-agap-700 underline hover:text-agap-900">
                                 Mark all as read
                             </button>
                         </form>
                     )}
+                    {has_read && (
+                        <form action={clear_read_notifications_action}>
+                            <button type="submit" className="text-[11px] font-semibold text-agap-700 underline hover:text-agap-900">
+                                Clear read
+                            </button>
+                        </form>
+                    )}
+                    <Link
+                        href={notification_page_href({ kind: null, unread_only: false, cleared: !filter.cleared })}
+                        className="text-[11px] font-semibold text-agap-700 underline hover:text-agap-900"
+                    >
+                        {filter.cleared ? "Back to inbox" : "Cleared"}
+                    </Link>
                 </div>
             </div>
 
             <Notification_list
                 days={group_by_day(items, now)}
-                empty_label={filter.unread_only ? "You're all caught up." : "No notifications here yet."}
+                empty_label={
+                    filter.cleared
+                        ? "Nothing has been cleared."
+                        : filter.unread_only
+                          ? "You're all caught up."
+                          : "No notifications here yet."
+                }
             />
         </>
     );

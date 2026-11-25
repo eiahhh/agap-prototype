@@ -1,7 +1,12 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { mark_notification_read_action, mark_notification_unread_action } from "@/app/dashboard/notifications/actions";
+import {
+    dismiss_notification_action,
+    mark_notification_read_action,
+    mark_notification_unread_action,
+    restore_notification_action,
+} from "@/app/dashboard/notifications/actions";
 
 function Submit({ label, aria_label }: { label: string; aria_label: string }) {
     const { pending } = useFormStatus();
@@ -26,6 +31,16 @@ export function Read_toggle({ notification_id, title, is_read }: { notification_
                 label={is_read ? "Mark as unread" : "Mark as read"}
                 aria_label={`Mark “${title}” as ${is_read ? "unread" : "read"}`}
             />
+        </form>
+    );
+}
+
+// Clears a notification from the inbox, or puts a cleared one back.
+export function Dismiss_toggle({ notification_id, title, is_dismissed }: { notification_id: string; title: string; is_dismissed: boolean }) {
+    return (
+        <form action={is_dismissed ? restore_notification_action : dismiss_notification_action}>
+            <input type="hidden" name="notification_id" value={notification_id} />
+            <Submit label={is_dismissed ? "Restore" : "Clear"} aria_label={`${is_dismissed ? "Restore" : "Clear"} “${title}”`} />
         </form>
     );
 }

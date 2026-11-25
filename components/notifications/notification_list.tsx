@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notification_kind_labels, type notification_kind } from "@/lib/cdrrmo/notifications";
 import type { notification_day } from "@/lib/cdrrmo/notification_page";
-import { Read_toggle } from "./read_toggle";
+import { Dismiss_toggle, Read_toggle } from "./read_toggle";
 
 const time_format = new Intl.DateTimeFormat("en-PH", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Manila" });
 
@@ -57,7 +57,10 @@ export function Notification_list({ days, empty_label }: { days: notification_da
                                                 Open
                                             </Link>
                                         )}
-                                        <Read_toggle notification_id={item.id} title={item.title} is_read={item.is_read} />
+                                        {!item.is_dismissed && (
+                                            <Read_toggle notification_id={item.id} title={item.title} is_read={item.is_read} />
+                                        )}
+                                        <Dismiss_toggle notification_id={item.id} title={item.title} is_dismissed={item.is_dismissed} />
                                     </div>
                                 </div>
                             </li>
