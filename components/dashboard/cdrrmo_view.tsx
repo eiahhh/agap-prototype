@@ -1,3 +1,4 @@
+import { Auto_refresh } from "@/components/cdrrmo/auto_refresh";
 import { Inbox_notifications } from "@/components/cdrrmo/inbox_notifications";
 import { Pending_advisories } from "@/components/cdrrmo/pending_advisories";
 import { Recent_announcements } from "@/components/cdrrmo/recent_announcements";
@@ -20,6 +21,7 @@ export function Cdrrmo_view({ user }: { user: demo_user }) {
             title={`Welcome, ${user.name}`}
             description="Monitor weather, manage class suspension advisories, and follow up on notifications."
         >
+            <Auto_refresh />
             <Weather_widgets snapshot={snapshot} />
 
             <div className="grid grid-cols-1 gap-x-6 lg:grid-cols-3">

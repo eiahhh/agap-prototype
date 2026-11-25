@@ -8,7 +8,7 @@ const { cookie_jar, redirect_mock } = await vi.hoisted(async () => {
 });
 
 vi.mock("next/headers", () => ({ cookies: async () => cookie_jar.api }));
-vi.mock("next/navigation", () => ({ redirect: redirect_mock }));
+vi.mock("next/navigation", () => ({ redirect: redirect_mock, useRouter: () => ({ refresh: () => {} }) }));
 
 import { Role_view } from "@/components/dashboard/role_view";
 import { clear_account_requests, submit_account_request } from "@/lib/auth/account_requests";
