@@ -30,10 +30,12 @@ export function Advisory_edit_form({
     advisory_id,
     initial_values = empty_advisory_values,
     level_options,
+    return_to = "/dashboard",
 }: {
     advisory_id?: string;
     initial_values?: Record<advisory_field, string>;
     level_options: level_option[];
+    return_to?: string; // already checked with safe_return_path
 }) {
     const is_new = advisory_id === undefined;
     const [state, form_action, is_saving] = useActionState(
@@ -71,6 +73,7 @@ export function Advisory_edit_form({
             noValidate
             className="mt-8 flex flex-col gap-4 rounded-[10px] border-[0.8px] border-agap-line bg-agap-field p-6"
         >
+            <input type="hidden" name="return_to" value={return_to} />
             {state.form_error && (
                 <p role="alert" className="rounded-[10px] bg-red-50 p-3 text-xs text-red-800">
                     {state.form_error}
@@ -172,7 +175,7 @@ export function Advisory_edit_form({
 
             <div className="flex justify-end gap-2 pt-2">
                 <Link
-                    href="/dashboard"
+                    href={return_to}
                     className="flex h-10 items-center rounded-[10px] border-[0.8px] border-agap-line bg-white px-4 text-xs font-semibold text-agap-ink transition hover:border-agap-700"
                 >
                     {is_new ? "Cancel" : "Discard changes"}

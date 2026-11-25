@@ -4,7 +4,7 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { require_cdrrmo } from "@/lib/auth/current_user";
 import { cancel_advisory, create_advisory, find_advisory, publish_advisory, update_advisory } from "@/lib/cdrrmo/advisories";
-import { validate_advisory_form, type advisory_form_state } from "@/lib/cdrrmo/advisory_form";
+import { safe_return_path, validate_advisory_form, type advisory_form_state } from "@/lib/cdrrmo/advisory_form";
 import { add_notification } from "@/lib/cdrrmo/notifications";
 
 // Actions can be called directly with a POST, not only from the page,
@@ -21,7 +21,7 @@ export async function save_advisory(
     if (!update_advisory(advisory_id, result.input, user.id)) {
         return { form_error: "This advisory was already published or cancelled, so it can't be edited." };
     }
-    redirect("/dashboard");
+    redirect(safe_return_path(form_data.get("return_to")));
 }
 
 export async function create_advisory_action(
@@ -33,7 +33,7 @@ export async function create_advisory_action(
     if ("field_errors" in result) return result;
 
     create_advisory(result.input, user.id);
-    redirect("/dashboard");
+    redirect(safe_return_path(form_data.get("return_to")));
 }
 
 export async function publish_advisory_action(form_data: FormData) {

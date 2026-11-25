@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
+import { Back_link } from "@/components/cdrrmo/back_link";
 import { Advisory_edit_form } from "@/components/cdrrmo/advisory_edit_form";
 import { require_cdrrmo } from "@/lib/auth/current_user";
 import { advisory_level_labels, advisory_levels, find_advisory, is_pending } from "@/lib/cdrrmo/advisories";
-import { to_manila_datetime_input } from "@/lib/cdrrmo/advisory_form";
+import { safe_return_path, to_manila_datetime_input } from "@/lib/cdrrmo/advisory_form";
 
 export const metadata: Metadata = {
     title: "AGAP | Edit Advisory",
@@ -12,13 +12,13 @@ export const metadata: Metadata = {
 
 const level_options = advisory_levels.map((level) => ({ value: level, label: advisory_level_labels[level] }));
 
-export default function edit_advisory_page({ params }: PageProps<"/dashboard/advisories/[id]/edit">) {
+export default function edit_advisory_page({ params, searchParams }: PageProps<"/dashboard/advisories/[id]/edit">) {
     return (
         <main className="flex-1 px-6 py-10">
             <div className="mx-auto w-full max-w-[720px]">
-                <Link href="/dashboard" className="text-[11px] font-semibold leading-[16.5px] text-agap-700 underline">
-                    Back to dashboard
-                </Link>
+                <Suspense fallback={<span className="text-[11px] leading-[16.5px]">&nbsp;</span>}>
+                    <Back_link search_params={searchParams} />
+                </Suspense>
                 <p className="mt-6 text-[10px] font-semibold uppercase leading-[15px] tracking-[1px] text-agap-500">
                     Class suspension advisory
                 </p>
@@ -30,7 +30,7 @@ export default function edit_advisory_page({ params }: PageProps<"/dashboard/adv
                 </p>
 
                 <Suspense fallback={<p className="mt-8 text-xs text-agap-muted">Loading advisory…</p>}>
-                    <Advisory_editor params={params} />
+                    <Advisory_editor params={params} search_params={searchParams} />
                 </Suspense>
             </div>
         </main>
@@ -38,9 +38,16 @@ export default function edit_advisory_page({ params }: PageProps<"/dashboard/adv
 }
 
 // Reads the session and the URL, so it streams in behind the Suspense boundary.
-async function Advisory_editor({ params }: { params: Promise<{ id: string }> }) {
+async function Advisory_editor({
+    params,
+    search_params,
+}: {
+    params: Promise<{ id: string }>;
+    search_params: Promise<Record<string, string | string[] | undefined>>;
+}) {
     await require_cdrrmo();
     const { id } = await params;
+    const return_to = safe_return_path((await search_params).return_to);
     const item = find_advisory(id);
 
     if (!item || !is_pending(item)) {
@@ -57,6 +64,7 @@ async function Advisory_editor({ params }: { params: Promise<{ id: string }> }) 
         <Advisory_edit_form
             advisory_id={item.id}
             level_options={level_options}
+            return_to={return_to}
             initial_values={{
                 title: item.title,
                 level: item.level,

@@ -70,3 +70,11 @@ export function validate_advisory_form(
 export function to_manila_datetime_input(timestamp: number): string {
     return new Date(timestamp + 8 * 3_600_000).toISOString().slice(0, 16);
 }
+
+// Where to go after saving. Only our own announcement and dashboard pages are allowed,
+// so a crafted link can't send people to another site.
+const return_path_pattern = /^\/dashboard(\/announcements(\/[0-9a-f-]{36})?)?$/;
+
+export function safe_return_path(value: unknown): string {
+    return typeof value === "string" && return_path_pattern.test(value) ? value : "/dashboard";
+}
