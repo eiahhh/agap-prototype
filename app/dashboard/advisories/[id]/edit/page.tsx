@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { Back_link } from "@/components/cdrrmo/back_link";
 import { Advisory_edit_form } from "@/components/cdrrmo/advisory_edit_form";
 import { require_cdrrmo } from "@/lib/auth/current_user";
-import { advisory_level_labels, advisory_levels, find_advisory, is_pending } from "@/lib/cdrrmo/advisories";
+import { advisory_level_labels, advisory_levels, find_advisory, is_archived, is_pending } from "@/lib/cdrrmo/advisories";
 import { safe_return_path, to_manila_datetime_input } from "@/lib/cdrrmo/advisory_form";
 
 export const metadata: Metadata = {
@@ -47,11 +47,15 @@ async function Advisory_editor({
     const return_to = safe_return_path((await search_params).return_to);
     const item = find_advisory(id);
 
-    const is_revision = item?.status === "published";
+    const is_revision = item?.status === "published" && !is_archived(item);
     if (!item || (!is_pending(item) && !is_revision)) {
         return (
             <p className="mt-8 rounded-[10px] border-[0.8px] border-agap-line bg-agap-field p-6 text-center text-xs text-agap-muted">
-                {item ? "This advisory was cancelled, so it can't be edited." : "This advisory doesn't exist."}
+                {!item
+                    ? "This advisory doesn't exist."
+                    : is_archived(item)
+                      ? "This notice is archived. Restore it before making changes."
+                      : "This advisory was cancelled, so it can't be edited."}
             </p>
         );
     }

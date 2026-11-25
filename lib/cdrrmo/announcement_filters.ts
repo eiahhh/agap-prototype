@@ -1,8 +1,8 @@
 // Tabs and search for the announcement management page.
 
-import type { advisory, advisory_status } from "./advisories";
+import { is_archived, type advisory, type advisory_status } from "./advisories";
 
-export const announcement_tabs = ["all", "draft", "scheduled", "published", "cancelled"] as const;
+export const announcement_tabs = ["all", "draft", "scheduled", "published", "cancelled", "archived"] as const;
 export type announcement_tab = (typeof announcement_tabs)[number];
 
 export const announcement_tab_labels: Record<announcement_tab, string> = {
@@ -11,6 +11,7 @@ export const announcement_tab_labels: Record<announcement_tab, string> = {
     scheduled: "Scheduled",
     published: "Published",
     cancelled: "Cancelled",
+    archived: "Archived",
 };
 
 export function parse_announcement_tab(value: string | string[] | undefined): announcement_tab {
@@ -22,7 +23,10 @@ export function parse_search_query(value: string | string[] | undefined): string
     return (Array.isArray(value) ? value[0] : value ?? "").trim().slice(0, 100);
 }
 
+// Archived notices only show on the Archived tab.
 function in_tab(item: advisory, tab: announcement_tab): boolean {
+    if (tab === "archived") return is_archived(item);
+    if (is_archived(item)) return false;
     return tab === "all" || item.status === (tab as advisory_status);
 }
 
@@ -38,6 +42,7 @@ export function filter_announcements(items: readonly advisory[], tab: announceme
         .filter((item) => in_tab(item, tab) && matches(item, query))
         .sort((first, second) => {
             if (tab === "scheduled") return first.scheduled_for! - second.scheduled_for!;
+            if (tab === "archived") return second.archived_at! - first.archived_at!;
             return second.updated_at - first.updated_at;
         });
 }
@@ -46,6 +51,10 @@ export function count_by_tab(items: readonly advisory[], query: string): Record<
     const counts = Object.fromEntries(announcement_tabs.map((tab) => [tab, 0])) as Record<announcement_tab, number>;
     for (const item of items) {
         if (!matches(item, query)) continue;
+        if (is_archived(item)) {
+            counts.archived += 1;
+            continue;
+        }
         counts.all += 1;
         counts[item.status as announcement_tab] += 1;
     }

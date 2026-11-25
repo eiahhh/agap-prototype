@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { Advisory_action_buttons } from "@/components/cdrrmo/advisory_action_buttons";
-import { advisory_level_labels, advisory_status_labels, is_pending, type advisory, type advisory_status } from "@/lib/cdrrmo/advisories";
+import {
+    advisory_level_labels,
+    advisory_status_labels,
+    is_archived,
+    is_pending,
+    type advisory,
+    type advisory_status,
+} from "@/lib/cdrrmo/advisories";
+import { Archive_button } from "./archive_button";
 
 const date_time_format = new Intl.DateTimeFormat("en-PH", {
     dateStyle: "medium",
@@ -45,6 +53,7 @@ export function Announcement_list({ items, empty_label }: { items: advisory[]; e
                             >
                                 {advisory_status_labels[item.status]}
                             </span>
+                            {is_archived(item) && <Archived_badge />}
                             <h3 className="mt-2 text-sm font-medium text-agap-ink">
                                 <Link href={`/dashboard/announcements/${item.id}`} className="hover:text-agap-700 hover:underline">
                                     {item.title}
@@ -58,6 +67,15 @@ export function Announcement_list({ items, empty_label }: { items: advisory[]; e
                     </div>
 
                     <p className="mt-3 line-clamp-2 text-xs leading-[18px] text-agap-muted">{item.message}</p>
+
+                    {!is_pending(item) && (
+                        <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+                            <Link href={`/dashboard/announcements/${item.id}`} className={secondary_link_class}>
+                                View
+                            </Link>
+                            <Archive_button advisory_id={item.id} title={item.title} is_archived={is_archived(item)} />
+                        </div>
+                    )}
 
                     {is_pending(item) && (
                         <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
@@ -77,5 +95,13 @@ export function Announcement_list({ items, empty_label }: { items: advisory[]; e
                 </li>
             ))}
         </ul>
+    );
+}
+
+export function Archived_badge() {
+    return (
+        <span className="ml-2 inline-block rounded-full bg-agap-muted/15 px-2.5 py-0.5 text-[10px] font-semibold text-agap-muted">
+            Archived
+        </span>
     );
 }

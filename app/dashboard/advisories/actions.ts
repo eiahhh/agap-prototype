@@ -4,10 +4,12 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { require_cdrrmo } from "@/lib/auth/current_user";
 import {
+    archive_advisory,
     cancel_advisory,
     create_advisory,
     find_advisory,
     publish_advisory,
+    restore_advisory,
     revise_advisory,
     update_advisory,
 } from "@/lib/cdrrmo/advisories";
@@ -96,5 +98,23 @@ export async function cancel_advisory_action(form_data: FormData) {
             body: `“${find_advisory(advisory_id)!.title}” was cancelled and will not be sent.`,
         });
     }
+    refresh();
+}
+
+export async function archive_advisory_action(form_data: FormData) {
+    const user = await require_cdrrmo();
+    const advisory_id = String(form_data.get("advisory_id") ?? "");
+    if (!advisory_id) return;
+
+    archive_advisory(advisory_id, user.id);
+    refresh();
+}
+
+export async function restore_advisory_action(form_data: FormData) {
+    await require_cdrrmo();
+    const advisory_id = String(form_data.get("advisory_id") ?? "");
+    if (!advisory_id) return;
+
+    restore_advisory(advisory_id);
     refresh();
 }

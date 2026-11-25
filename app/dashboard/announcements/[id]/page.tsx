@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { announcement_status_badge_class } from "@/components/announcements/announcement_list";
+import { announcement_status_badge_class, Archived_badge } from "@/components/announcements/announcement_list";
+import { Archive_button } from "@/components/announcements/archive_button";
 import { primary_button_class } from "@/components/auth/form_styles";
 import { Advisory_action_buttons } from "@/components/cdrrmo/advisory_action_buttons";
 import { Delivery_cell, delivery_status_badge_class } from "@/components/cdrrmo/recent_announcements";
 import { require_cdrrmo } from "@/lib/auth/current_user";
-import { advisory_level_labels, advisory_status_labels, find_advisory, is_pending, type advisory } from "@/lib/cdrrmo/advisories";
+import {
+    advisory_level_labels,
+    advisory_status_labels,
+    find_advisory,
+    is_archived,
+    is_pending,
+    type advisory,
+} from "@/lib/cdrrmo/advisories";
 import { announcement_history } from "@/lib/cdrrmo/announcement_history";
 import { announcement_status, announcement_status_labels, channel_deliveries } from "@/lib/cdrrmo/announcement_tracker";
 
@@ -57,6 +65,7 @@ async function Announcement({ params }: { params: Promise<{ id: string }> }) {
             <span className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${announcement_status_badge_class[item.status]}`}>
                 {advisory_status_labels[item.status]}
             </span>
+            {is_archived(item) && <Archived_badge />}
             {(item.revisions?.length ?? 0) > 0 && (
                 <span className="ml-2 inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-semibold text-amber-900">
                     Updated
@@ -93,7 +102,10 @@ async function Announcement({ params }: { params: Promise<{ id: string }> }) {
                         </form>
                     </>
                 )}
-                {item.status === "published" && (
+                {!is_pending(item) && (
+                    <Archive_button advisory_id={item.id} title={item.title} is_archived={is_archived(item)} />
+                )}
+                {item.status === "published" && !is_archived(item) && (
                     <Link
                         href={`/dashboard/advisories/${item.id}/edit?return_to=${detail_path}`}
                         className={`h-9 text-[11px] ${primary_button_class}`}

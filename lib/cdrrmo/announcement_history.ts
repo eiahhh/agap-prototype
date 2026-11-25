@@ -19,5 +19,6 @@ export function announcement_history(item: advisory): history_entry[] {
         });
     }
     if (item.cancelled_at !== undefined) entries.push({ at: item.cancelled_at, label: "Cancelled", by: name(item.updated_by) });
+    if (item.archived_at !== undefined) entries.push({ at: item.archived_at, label: "Archived", by: name(item.archived_by) });
     return entries.sort((first, second) => second.at - first.at);
 }

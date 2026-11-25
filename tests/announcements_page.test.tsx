@@ -50,7 +50,7 @@ describe("filter_announcements", () => {
     it("lists everything newest first on the All tab", () => {
         const items = filter_announcements(list_advisories(), "all", "");
 
-        expect(items).toHaveLength(list_advisories().length);
+        expect(items).toHaveLength(list_advisories().filter((item) => item.archived_at === undefined).length);
         expect(items.map((item) => item.updated_at)).toEqual([...items.map((item) => item.updated_at)].sort((a, b) => b - a));
     });
 
@@ -63,7 +63,7 @@ describe("filter_announcements", () => {
     it("counts each tab for the current search", () => {
         const counts = count_by_tab(list_advisories(), "");
 
-        expect(counts.all).toBe(list_advisories().length);
+        expect(counts.all + counts.archived).toBe(list_advisories().length);
         expect(counts.draft + counts.scheduled + counts.published + counts.cancelled).toBe(counts.all);
         expect(count_by_tab(list_advisories(), "heat index")).toMatchObject({ all: 1, draft: 1 });
     });
