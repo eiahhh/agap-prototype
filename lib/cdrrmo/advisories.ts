@@ -1,0 +1,172 @@
+// PROTOTYPE ONLY: class suspension advisories are kept in server memory and reset on restart.
+// Replace with a real database table before production.
+
+import { randomUUID } from "node:crypto";
+
+export const advisory_levels = ["all", "preschool_to_elementary", "preschool_to_high_school", "college"] as const;
+export type advisory_level = (typeof advisory_levels)[number];
+
+export const advisory_level_labels: Record<advisory_level, string> = {
+    all: "All levels, public and private",
+    preschool_to_elementary: "Preschool to Elementary",
+    preschool_to_high_school: "Preschool to Senior High School",
+    college: "College and graduate school",
+};
+
+export function is_advisory_level(value: string): value is advisory_level {
+    return (advisory_levels as readonly string[]).includes(value);
+}
+
+export type advisory_status = "draft" | "scheduled" | "published" | "cancelled";
+
+export const advisory_status_labels: Record<advisory_status, string> = {
+    draft: "Draft",
+    scheduled: "Scheduled",
+    published: "Published",
+    cancelled: "Cancelled",
+};
+
+export type advisory = {
+    id: string;
+    title: string;
+    level: advisory_level;
+    coverage: string; // e.g. "Citywide" or a list of barangays
+    message: string;
+    status: advisory_status;
+    scheduled_for?: number; // only for "scheduled"
+    created_at: number;
+    updated_at: number;
+    published_at?: number;
+    cancelled_at?: number;
+    updated_by?: string;
+};
+
+export type advisory_input = {
+    title: string;
+    level: advisory_level;
+    coverage: string;
+    message: string;
+    scheduled_for?: number; // set = scheduled, unset = draft
+};
+
+const advisories: advisory[] = [];
+
+const minute = 60_000;
+const hour = 60 * minute;
+
+// Sample advisories so the dashboard has something to show on first load.
+function seed(now: number) {
+    const samples: Array<Omit<advisory, "id" | "updated_at">> = [
+        {
+            title: "Suspension of classes due to heavy rainfall",
+            level: "preschool_to_high_school",
+            coverage: "Citywide",
+            message:
+                "Due to the Yellow Rainfall Warning issued by PAGASA, face-to-face classes from Preschool to Senior High School in public and private schools are suspended this afternoon. Schools may shift to modular or online learning.",
+            status: "scheduled",
+            scheduled_for: now + 45 * minute,
+            created_at: now - 50 * minute,
+        },
+        {
+            title: "Suspension of classes in flood-prone barangays",
+            level: "all",
+            coverage: "Salitran II, Paliparan III",
+            message:
+                "Classes at all levels in schools within Barangays Salitran II and Paliparan III are suspended tomorrow due to rising water levels along the Julian River.",
+            status: "draft",
+            created_at: now - 20 * minute,
+        },
+        {
+            title: "Afternoon class suspension: heat index advisory",
+            level: "preschool_to_elementary",
+            coverage: "Citywide",
+            message: "Face-to-face classes for Preschool to Elementary are suspended from 12:00 NN due to a high heat index.",
+            status: "draft",
+            created_at: now - 3 * hour,
+        },
+    ];
+    for (const sample of samples) advisories.push({ ...sample, id: randomUUID(), updated_at: sample.created_at });
+}
+
+// Puts the sample advisories back. Used on first load and by tests.
+export function reset_advisories(now: number = Date.now()) {
+    advisories.length = 0;
+    seed(now);
+}
+
+reset_advisories();
+
+export function is_pending(item: advisory): boolean {
+    return item.status === "draft" || item.status === "scheduled";
+}
+
+// Drafts and scheduled advisories awaiting review. Scheduled ones come first, soonest first,
+// then drafts with the most recently edited first.
+export function list_pending_advisories(): advisory[] {
+    return advisories.filter(is_pending).sort((first, second) => {
+        if (first.status !== second.status) return first.status === "scheduled" ? -1 : 1;
+        if (first.status === "scheduled") return first.scheduled_for! - second.scheduled_for!;
+        return second.updated_at - first.updated_at;
+    });
+}
+
+export function list_advisories(): readonly advisory[] {
+    return advisories;
+}
+
+export function find_advisory(id: string): advisory | null {
+    return advisories.find((candidate) => candidate.id === id) ?? null;
+}
+
+export function create_advisory(input: advisory_input, author_id: string, now: number = Date.now()): advisory {
+    const item: advisory = {
+        id: randomUUID(),
+        ...input,
+        status: input.scheduled_for === undefined ? "draft" : "scheduled",
+        created_at: now,
+        updated_at: now,
+        updated_by: author_id,
+    };
+    advisories.push(item);
+    return item;
+}
+
+// Edits a draft or scheduled advisory. Returns false when it is unknown or already published/cancelled,
+// so a sent advisory can't be rewritten after the fact.
+export function update_advisory(id: string, input: advisory_input, editor_id: string, now: number = Date.now()): boolean {
+    const item = find_advisory(id);
+    if (!item || !is_pending(item)) return false;
+
+    item.title = input.title;
+    item.level = input.level;
+    item.coverage = input.coverage;
+    item.message = input.message;
+    item.scheduled_for = input.scheduled_for;
+    item.status = input.scheduled_for === undefined ? "draft" : "scheduled";
+    item.updated_at = now;
+    item.updated_by = editor_id;
+    return true;
+}
+
+export function publish_advisory(id: string, publisher_id: string, now: number = Date.now()): boolean {
+    const item = find_advisory(id);
+    if (!item || !is_pending(item)) return false;
+
+    item.status = "published";
+    item.published_at = now;
+    item.scheduled_for = undefined;
+    item.updated_at = now;
+    item.updated_by = publisher_id;
+    return true;
+}
+
+export function cancel_advisory(id: string, canceller_id: string, now: number = Date.now()): boolean {
+    const item = find_advisory(id);
+    if (!item || !is_pending(item)) return false;
+
+    item.status = "cancelled";
+    item.cancelled_at = now;
+    item.updated_at = now;
+    item.updated_by = canceller_id;
+    return true;
+}

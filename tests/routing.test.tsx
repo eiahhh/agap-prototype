@@ -62,6 +62,14 @@ describe("routing: wrong role", () => {
         expect(await visit("/dashboard/requests", role)).toBe("/unauthorized");
     });
 
+    it.each(["super_admin", "it_staff"] as const)("sends %s from advisory editing to /unauthorized", async (role) => {
+        expect(await visit("/dashboard/advisories/some-id/edit", role)).toBe("/unauthorized");
+    });
+
+    it("lets CDRRMO personnel edit advisories", async () => {
+        expect(await visit("/dashboard/advisories/some-id/edit", "cdrrmo")).toBeNull();
+    });
+
     it("also blocks pages nested under a restricted route", async () => {
         expect(await visit("/dashboard/requests/some-id", "cdrrmo")).toBe("/unauthorized");
     });
