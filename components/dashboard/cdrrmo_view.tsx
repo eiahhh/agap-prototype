@@ -34,7 +34,11 @@ export function Cdrrmo_view({ user }: { user: demo_user }) {
                     <Recent_announcements announcements={track_recent_announcements(list_advisories(), now)} />
                 </div>
                 <aside className="min-w-0">
-                    <Inbox_notifications notifications={list_notifications()} unread_count={count_unread_notifications()} now={now} />
+                    <Inbox_notifications
+                        notifications={list_notifications(user.id, { limit: 6 })}
+                        unread_count={count_unread_notifications(user.id)}
+                        now={now}
+                    />
                 </aside>
             </div>
         </View_shell>

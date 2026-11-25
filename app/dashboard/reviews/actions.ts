@@ -27,6 +27,8 @@ export async function submit_for_review_action(form_data: FormData) {
             kind: "advisory",
             title: "Review requested",
             body: `${user.name} submitted “${find_advisory(advisory_id)!.title}” for approval.`,
+            href: "/dashboard/reviews",
+            actor_id: user.id,
         });
     }
     refresh();
@@ -43,10 +45,11 @@ export async function decide_review_action(_previous_state: review_form_state, f
     if (result !== "ok") return { error: decision_errors[result] };
 
     const title = find_advisory(advisory_id)!.title;
+    const href = "/dashboard/reviews?tab=mine";
     add_notification(
         decision === "approved"
-            ? { kind: "advisory", title: "Notice approved", body: `${user.name} approved “${title}”. It can now be published.` }
-            : { kind: "advisory", title: "Changes requested", body: `${user.name} sent back “${title}”: ${comment}` },
+            ? { kind: "advisory", title: "Notice approved", body: `${user.name} approved “${title}”. It can now be published.`, href, actor_id: user.id }
+            : { kind: "advisory", title: "Changes requested", body: `${user.name} sent back “${title}”: ${comment}`, href, actor_id: user.id },
     );
     refresh();
     return { decided: decision };

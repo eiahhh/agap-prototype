@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { mark_all_notifications_read_action, mark_notification_read_action } from "@/app/dashboard/notifications/actions";
-import { notification_kind_labels, type inbox_notification, type notification_kind } from "@/lib/cdrrmo/notifications";
+import { notification_kind_labels, type notification_view, type notification_kind } from "@/lib/cdrrmo/notifications";
 import { Widget_card } from "./widget_card";
 
 const relative_format = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
@@ -29,7 +30,7 @@ export function Inbox_notifications({
     unread_count,
     now,
 }: {
-    notifications: inbox_notification[];
+    notifications: notification_view[];
     unread_count: number;
     now: number;
 }) {
@@ -71,8 +72,8 @@ export function Inbox_notifications({
     );
 }
 
-function Notification_row({ item, now }: { item: inbox_notification; now: number }) {
-    const is_unread = item.read_at === undefined;
+function Notification_row({ item, now }: { item: notification_view; now: number }) {
+    const is_unread = !item.is_read;
 
     return (
         <li className="flex gap-3 py-3 first:pt-0 last:pb-0" data-unread={is_unread || undefined}>
@@ -85,7 +86,15 @@ function Notification_row({ item, now }: { item: inbox_notification; now: number
                     </p>
                     <p className="shrink-0 text-[10px] text-agap-muted">{format_time_ago(item.created_at, now)}</p>
                 </div>
-                <p className={`mt-0.5 text-xs text-agap-ink ${is_unread ? "font-semibold" : "font-normal"}`}>{item.title}</p>
+                <p className={`mt-0.5 text-xs text-agap-ink ${is_unread ? "font-semibold" : "font-normal"}`}>
+                    {item.href ? (
+                        <Link href={item.href} className="hover:text-agap-700 hover:underline">
+                            {item.title}
+                        </Link>
+                    ) : (
+                        item.title
+                    )}
+                </p>
                 <p className="mt-0.5 text-[11px] leading-[16.5px] text-agap-muted">{item.body}</p>
                 {is_unread && (
                     <form action={mark_notification_read_action} className="mt-1.5">
