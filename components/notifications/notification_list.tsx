@@ -13,7 +13,15 @@ export const kind_dot_class: Record<notification_kind, string> = {
 };
 
 // Notifications grouped by day, each with its type, time, link and read toggle.
-export function Notification_list({ days, empty_label }: { days: notification_day[]; empty_label: string }) {
+export function Notification_list({
+    days,
+    empty_label,
+    muted = [],
+}: {
+    days: notification_day[];
+    empty_label: string;
+    muted?: notification_kind[];
+}) {
     if (days.length === 0) {
         return (
             <p className="mt-4 rounded-[10px] border-[0.8px] border-agap-line bg-agap-field p-6 text-center text-xs text-agap-muted">
@@ -42,6 +50,7 @@ export function Notification_list({ days, empty_label }: { days: notification_da
                                         <p className="text-[10px] font-semibold uppercase tracking-[0.5px] text-agap-muted">
                                             {notification_kind_labels[item.kind]}
                                             {!item.is_read && <span className="ml-2 normal-case tracking-normal text-agap-700">● Unread</span>}
+                                            {muted.includes(item.kind) && <span className="ml-2 normal-case tracking-normal">· Muted</span>}
                                         </p>
                                         <p className="text-[10px] text-agap-muted">{time_format.format(item.created_at)}</p>
                                     </div>

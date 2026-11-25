@@ -3,14 +3,23 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { clear_read_notifications_action, mark_all_notifications_read_action } from "@/app/dashboard/notifications/actions";
 import { Notification_list } from "@/components/notifications/notification_list";
+import { Notification_settings } from "@/components/notifications/notification_settings";
 import { require_cdrrmo } from "@/lib/auth/current_user";
 import { count_unread_notifications, list_notifications, notification_kind_labels, notification_kinds } from "@/lib/cdrrmo/notifications";
+import { muted_kinds } from "@/lib/cdrrmo/notification_preferences";
 import { group_by_day, notification_page_href, parse_notification_filter } from "@/lib/cdrrmo/notification_page";
 import { get_weather_snapshot } from "@/lib/cdrrmo/weather";
 
 export const metadata: Metadata = {
     title: "AGAP | Notifications",
 };
+
+const kind_descriptions = {
+    weather: "PAGASA warnings and wind signals.",
+    advisory: "Advisories published, updated, cancelled or sent for review.",
+    delivery: "SMS, Facebook and email delivery problems.",
+    system: "Maintenance and account notices.",
+} as const;
 
 const chip_class = (is_active: boolean) =>
     `rounded-[8px] px-3 py-1.5 text-[11px] font-semibold transition ${
@@ -40,6 +49,7 @@ async function Notifications({ search_params }: { search_params: Promise<Record<
     const user = await require_cdrrmo();
     const filter = parse_notification_filter(await search_params);
     const unread_count = count_unread_notifications(user.id);
+    const muted = muted_kinds(user.id);
     const items = list_notifications(user.id, {
         kind: filter.kind ?? undefined,
         unread_only: filter.unread_only,
@@ -119,7 +129,19 @@ async function Notifications({ search_params }: { search_params: Promise<Record<
                           ? "You're all caught up."
                           : "No notifications here yet."
                 }
+                muted={muted}
             />
+
+            <section aria-label="Notification settings" className="mt-10">
+                <Notification_settings
+                    options={notification_kinds.map((kind) => ({
+                        value: kind,
+                        label: notification_kind_labels[kind],
+                        description: kind_descriptions[kind],
+                        is_muted: muted.includes(kind),
+                    }))}
+                />
+            </section>
         </>
     );
 }

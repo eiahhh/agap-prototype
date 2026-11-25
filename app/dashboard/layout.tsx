@@ -4,7 +4,7 @@ import { Agap_logo } from "@/components/login/agap_logo";
 import { logout } from "@/app/login/actions";
 import { require_user } from "@/lib/auth/current_user";
 import { role_labels } from "@/lib/auth/demo_users";
-import { count_unread_notifications } from "@/lib/cdrrmo/notifications";
+import { count_inbox_unread } from "@/lib/cdrrmo/notification_preferences";
 
 // Shared shell for every /dashboard page: logo, nav, signed-in user and sign out.
 export default function dashboard_layout({ children }: { children: React.ReactNode }) {
@@ -92,7 +92,7 @@ async function Account_nav() {
 }
 
 function Notifications_link({ user_id }: { user_id: string }) {
-    const unread = count_unread_notifications(user_id);
+    const unread = count_inbox_unread(user_id);
     return (
         <Link href="/dashboard/notifications" className="inline-flex items-center gap-1.5 text-agap-700 hover:underline">
             Notifications

@@ -6,7 +6,7 @@ import { Weather_widgets } from "@/components/cdrrmo/weather_widgets";
 import type { demo_user } from "@/lib/auth/demo_users";
 import { list_advisories, list_pending_advisories } from "@/lib/cdrrmo/advisories";
 import { track_recent_announcements } from "@/lib/cdrrmo/announcement_tracker";
-import { count_unread_notifications, list_notifications } from "@/lib/cdrrmo/notifications";
+import { count_inbox_unread, list_inbox_notifications } from "@/lib/cdrrmo/notification_preferences";
 import { review_queue } from "@/lib/cdrrmo/review_queue";
 import { get_weather_snapshot } from "@/lib/cdrrmo/weather";
 import { View_shell } from "./view_shell";
@@ -35,8 +35,8 @@ export function Cdrrmo_view({ user }: { user: demo_user }) {
                 </div>
                 <aside className="min-w-0">
                     <Inbox_notifications
-                        notifications={list_notifications(user.id, { limit: 6 })}
-                        unread_count={count_unread_notifications(user.id)}
+                        notifications={list_inbox_notifications(user.id, 6)}
+                        unread_count={count_inbox_unread(user.id)}
                         now={now}
                     />
                 </aside>
