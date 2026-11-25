@@ -3,7 +3,7 @@
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { require_cdrrmo } from "@/lib/auth/current_user";
-import { cancel_advisory, find_advisory, publish_advisory, update_advisory } from "@/lib/cdrrmo/advisories";
+import { cancel_advisory, create_advisory, find_advisory, publish_advisory, update_advisory } from "@/lib/cdrrmo/advisories";
 import { validate_advisory_form, type advisory_form_state } from "@/lib/cdrrmo/advisory_form";
 import { add_notification } from "@/lib/cdrrmo/notifications";
 
@@ -21,6 +21,18 @@ export async function save_advisory(
     if (!update_advisory(advisory_id, result.input, user.id)) {
         return { form_error: "This advisory was already published or cancelled, so it can't be edited." };
     }
+    redirect("/dashboard");
+}
+
+export async function create_advisory_action(
+    _previous_state: advisory_form_state,
+    form_data: FormData,
+): Promise<advisory_form_state> {
+    const user = await require_cdrrmo();
+    const result = validate_advisory_form(form_data);
+    if ("field_errors" in result) return result;
+
+    create_advisory(result.input, user.id);
     redirect("/dashboard");
 }
 

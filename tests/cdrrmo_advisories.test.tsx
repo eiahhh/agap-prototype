@@ -12,7 +12,12 @@ vi.mock("next/headers", () => ({ cookies: async () => cookie_jar.api }));
 vi.mock("next/navigation", () => ({ redirect: redirect_mock }));
 vi.mock("next/cache", () => ({ refresh: refresh_mock }));
 
-import { cancel_advisory_action, publish_advisory_action, save_advisory } from "@/app/dashboard/advisories/actions";
+import {
+    cancel_advisory_action,
+    create_advisory_action,
+    publish_advisory_action,
+    save_advisory,
+} from "@/app/dashboard/advisories/actions";
 import { Pending_advisories } from "@/components/cdrrmo/pending_advisories";
 import type { user_role } from "@/lib/auth/demo_users";
 import { session_cookie_name, sign_session } from "@/lib/auth/session_token";
@@ -171,6 +176,28 @@ describe("advisory actions", () => {
         expect(find_advisory(first.id)).toMatchObject({ title: "Updated title", status: "draft", updated_by: "u_cdrrmo" });
     });
 
+    it("creates a new draft and goes back to the dashboard", async () => {
+        await sign_in_as("u_cdrrmo", "cdrrmo");
+
+        await expect(create_advisory_action({}, make_form_data({ ...valid_fields, title: "Brand new advisory" }))).rejects.toThrow(
+            "NEXT_REDIRECT:/dashboard",
+        );
+        expect(list_pending_advisories().find((item) => item.title === "Brand new advisory")).toMatchObject({
+            status: "draft",
+            updated_by: "u_cdrrmo",
+        });
+    });
+
+    it("does not create an advisory when the form is invalid", async () => {
+        await sign_in_as("u_cdrrmo", "cdrrmo");
+        const before = list_pending_advisories().length;
+
+        const state = await create_advisory_action({}, make_form_data({ ...valid_fields, message: "short" }));
+
+        expect(state.field_errors?.message).toBeTruthy();
+        expect(list_pending_advisories()).toHaveLength(before);
+    });
+
     it("returns field errors without saving", async () => {
         await sign_in_as("u_cdrrmo", "cdrrmo");
         const [first] = list_pending_advisories();
@@ -202,7 +229,9 @@ describe("advisory actions", () => {
         await expect(publish_advisory_action(form_data)).rejects.toThrow("NEXT_REDIRECT:/unauthorized");
         await expect(cancel_advisory_action(form_data)).rejects.toThrow("NEXT_REDIRECT:/unauthorized");
         await expect(save_advisory(first.id, {}, make_form_data(valid_fields))).rejects.toThrow("NEXT_REDIRECT:/unauthorized");
+        await expect(create_advisory_action({}, make_form_data(valid_fields))).rejects.toThrow("NEXT_REDIRECT:/unauthorized");
         expect(find_advisory(first.id)!.status).toBe(first.status);
+        expect(list_pending_advisories()).toHaveLength(3);
     });
 
     it("sends signed-out visitors to /login", async () => {
@@ -218,6 +247,7 @@ describe("Pending_advisories widget", () => {
         render(<Pending_advisories advisories={pending} />);
 
         expect(screen.getByText("3 advisories pending")).toBeTruthy();
+        expect(screen.getByRole("link", { name: "New advisory" }).getAttribute("href")).toBe("/dashboard/advisories/new");
         const cards = screen.getAllByRole("listitem");
         expect(cards).toHaveLength(3);
 

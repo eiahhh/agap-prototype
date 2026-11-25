@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { save_advisory } from "@/app/dashboard/advisories/actions";
+import { create_advisory_action, save_advisory } from "@/app/dashboard/advisories/actions";
 import {
     error_border_class,
     error_text_class,
@@ -17,16 +17,29 @@ type level_option = { value: string; label: string };
 
 const initial_state: advisory_form_state = {};
 
+export const empty_advisory_values: Record<advisory_field, string> = {
+    title: "",
+    level: "all",
+    coverage: "Citywide",
+    message: "",
+    scheduled_for: "",
+};
+
+// Without an advisory_id the form creates a new advisory; with one it edits that advisory.
 export function Advisory_edit_form({
     advisory_id,
-    initial_values,
+    initial_values = empty_advisory_values,
     level_options,
 }: {
-    advisory_id: string;
-    initial_values: Record<advisory_field, string>;
+    advisory_id?: string;
+    initial_values?: Record<advisory_field, string>;
     level_options: level_option[];
 }) {
-    const [state, form_action, is_saving] = useActionState(save_advisory.bind(null, advisory_id), initial_state);
+    const is_new = advisory_id === undefined;
+    const [state, form_action, is_saving] = useActionState(
+        is_new ? create_advisory_action : save_advisory.bind(null, advisory_id),
+        initial_state,
+    );
     const [values, set_values] = useState(initial_values);
     const errors = state.field_errors ?? {};
 
@@ -72,6 +85,7 @@ export function Advisory_edit_form({
                     id="title"
                     name="title"
                     type="text"
+                    placeholder="Suspension of classes due to heavy rainfall"
                     value={values.title}
                     onChange={update("title")}
                     {...aria("title")}
@@ -109,7 +123,7 @@ export function Advisory_edit_form({
                         id="coverage"
                         name="coverage"
                         type="text"
-                        placeholder="Citywide"
+                        placeholder="Citywide, or a list of barangays"
                         value={values.coverage}
                         onChange={update("coverage")}
                         {...aria("coverage")}
@@ -127,6 +141,7 @@ export function Advisory_edit_form({
                     id="message"
                     name="message"
                     rows={5}
+                    placeholder="Write the advisory exactly as it should be sent to schools and the public."
                     value={values.message}
                     onChange={update("message")}
                     {...aria("message")}
@@ -160,10 +175,10 @@ export function Advisory_edit_form({
                     href="/dashboard"
                     className="flex h-10 items-center rounded-[10px] border-[0.8px] border-agap-line bg-white px-4 text-xs font-semibold text-agap-ink transition hover:border-agap-700"
                 >
-                    Discard changes
+                    {is_new ? "Cancel" : "Discard changes"}
                 </Link>
                 <button type="submit" disabled={is_saving} className={`h-10 text-xs ${primary_button_class}`}>
-                    {is_saving ? "Saving…" : "Save changes"}
+                    {is_saving ? "Saving…" : is_new ? "Save advisory" : "Save changes"}
                 </button>
             </div>
         </form>

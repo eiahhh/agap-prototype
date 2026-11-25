@@ -4,6 +4,7 @@ import {
     advisory_status_labels,
     type advisory,
 } from "@/lib/cdrrmo/advisories";
+import { primary_button_class } from "@/components/auth/form_styles";
 import { Advisory_action_buttons } from "./advisory_action_buttons";
 import { Widget_card } from "./widget_card";
 
@@ -22,13 +23,18 @@ const status_badge_class = {
 export function Pending_advisories({ advisories }: { advisories: advisory[] }) {
     return (
         <section aria-labelledby="advisories-heading" className="mt-8">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 id="advisories-heading" className="text-base font-medium text-agap-ink">
                     Class suspension advisories awaiting review
                 </h2>
-                <p className="text-[11px] leading-[16.5px] text-agap-muted">
-                    {advisories.length} {advisories.length === 1 ? "advisory" : "advisories"} pending
-                </p>
+                <div className="flex items-center gap-3">
+                    <p className="text-[11px] leading-[16.5px] text-agap-muted">
+                        {advisories.length} {advisories.length === 1 ? "advisory" : "advisories"} pending
+                    </p>
+                    <Link href="/dashboard/advisories/new" className={`h-9 text-[11px] ${primary_button_class}`}>
+                        New advisory
+                    </Link>
+                </div>
             </div>
 
             {advisories.length === 0 ? (
