@@ -4,9 +4,11 @@ import { Recent_announcements } from "@/components/cdrrmo/recent_announcements";
 import {
     cancel_advisory,
     create_advisory,
+    decide_review,
     list_advisories,
     publish_advisory,
     reset_advisories,
+    submit_for_review,
     type advisory,
 } from "@/lib/cdrrmo/advisories";
 import { channel_deliveries, track_recent_announcements } from "@/lib/cdrrmo/announcement_tracker";
@@ -92,6 +94,8 @@ describe("track_recent_announcements", () => {
     it("picks up an advisory as soon as it is published or cancelled", () => {
         const to_publish = create_advisory({ title: "New", level: "all", coverage: "Citywide", message: "x".repeat(20) }, "u_cdrrmo", now);
         const to_cancel = create_advisory({ title: "Old", level: "all", coverage: "Citywide", message: "x".repeat(20) }, "u_cdrrmo", now);
+        submit_for_review(to_publish.id, "u_cdrrmo", now);
+        decide_review(to_publish.id, "approved", "u_cdrrmo_head", "", now);
         publish_advisory(to_publish.id, "u_cdrrmo", now + 2 * minute);
         cancel_advisory(to_cancel.id, "u_cdrrmo", now + minute);
 

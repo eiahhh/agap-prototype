@@ -123,6 +123,7 @@ describe("login: credentials", () => {
 
     it.each([
         ["cdrrmo@cdrrmo.gov.ph", "Cdrrmo@2026", "u_cdrrmo", "cdrrmo"],
+        ["head@cdrrmo.gov.ph", "Head@2026", "u_cdrrmo_head", "cdrrmo"],
         ["admin@cdrrmo.gov.ph", "Admin@2026", "u_admin", "super_admin"],
         ["it@cdrrmo.gov.ph", "ItStaff@2026", "u_it", "it_staff"],
     ])("signs in %s and redirects to /dashboard", async (email, password, user_id, role) => {

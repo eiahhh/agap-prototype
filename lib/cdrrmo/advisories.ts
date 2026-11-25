@@ -47,6 +47,26 @@ export type advisory = {
     last_sent_at?: number; // when the latest version went out (publish or update)
     archived_at?: number; // archived notices keep their status but leave the active lists
     archived_by?: string;
+    review?: advisory_review; // unset until the notice is submitted for review
+    review_log?: review_event[]; // every submit, decision and reset, oldest first
+};
+
+// A draft or scheduled notice must be approved by a different CDRRMO officer before it can be published.
+export type review_state = "in_review" | "approved" | "changes_requested";
+
+export type advisory_review = {
+    state: review_state;
+    submitted_by: string;
+    submitted_at: number;
+    decided_by?: string;
+    decided_at?: number;
+};
+
+export type review_event = {
+    at: number;
+    by: string;
+    action: "submitted" | "approved" | "changes_requested" | "reset";
+    comment?: string;
 };
 
 export type advisory_revision = {
@@ -83,6 +103,18 @@ function seed(now: number) {
             status: "scheduled",
             scheduled_for: now + 45 * minute,
             created_at: now - 50 * minute,
+            updated_by: "u_cdrrmo",
+            review: {
+                state: "approved",
+                submitted_by: "u_cdrrmo",
+                submitted_at: now - 48 * minute,
+                decided_by: "u_cdrrmo_head",
+                decided_at: now - 40 * minute,
+            },
+            review_log: [
+                { at: now - 48 * minute, by: "u_cdrrmo", action: "submitted" },
+                { at: now - 40 * minute, by: "u_cdrrmo_head", action: "approved", comment: "Matches the Yellow warning. Approved." },
+            ],
         },
         {
             title: "Suspension of classes in flood-prone barangays",
@@ -92,6 +124,9 @@ function seed(now: number) {
                 "Classes at all levels in schools within Barangays Salitran II and Paliparan III are suspended tomorrow due to rising water levels along the Julian River.",
             status: "draft",
             created_at: now - 20 * minute,
+            updated_by: "u_cdrrmo",
+            review: { state: "in_review", submitted_by: "u_cdrrmo", submitted_at: now - 15 * minute },
+            review_log: [{ at: now - 15 * minute, by: "u_cdrrmo", action: "submitted" }],
         },
         {
             title: "Afternoon class suspension: heat index advisory",
@@ -100,6 +135,9 @@ function seed(now: number) {
             message: "Face-to-face classes for Preschool to Elementary are suspended from 12:00 NN due to a high heat index.",
             status: "draft",
             created_at: now - 3 * hour,
+            updated_by: "u_cdrrmo_head",
+            review: { state: "in_review", submitted_by: "u_cdrrmo_head", submitted_at: now - 2 * hour },
+            review_log: [{ at: now - 2 * hour, by: "u_cdrrmo_head", action: "submitted" }],
         },
         {
             title: "Suspension of afternoon classes, Preschool to Elementary",
@@ -220,12 +258,22 @@ export function update_advisory(id: string, input: advisory_input, editor_id: st
     item.status = input.scheduled_for === undefined ? "draft" : "scheduled";
     item.updated_at = now;
     item.updated_by = editor_id;
+    // A reviewer approved the old wording, not this one, so it has to be reviewed again.
+    if (item.review && item.review.state !== "changes_requested") {
+        item.review = undefined;
+        item.review_log = [...(item.review_log ?? []), { at: now, by: editor_id, action: "reset" }];
+    }
     return true;
 }
 
+export function is_approved(item: advisory): boolean {
+    return item.review?.state === "approved";
+}
+
+// Only approved notices can be published.
 export function publish_advisory(id: string, publisher_id: string, now: number = Date.now()): boolean {
     const item = find_advisory(id);
-    if (!item || !is_pending(item)) return false;
+    if (!item || !is_pending(item) || !is_approved(item)) return false;
 
     item.status = "published";
     item.published_at = now;
@@ -293,4 +341,38 @@ export function restore_advisory(id: string): boolean {
     item.archived_at = undefined;
     item.archived_by = undefined;
     return true;
+}
+
+// Sends a draft or scheduled notice to another officer for review.
+export function submit_for_review(id: string, submitter_id: string, now: number = Date.now()): boolean {
+    const item = find_advisory(id);
+    if (!item || !is_pending(item) || item.review?.state === "in_review" || item.review?.state === "approved") return false;
+
+    item.review = { state: "in_review", submitted_by: submitter_id, submitted_at: now };
+    item.review_log = [...(item.review_log ?? []), { at: now, by: submitter_id, action: "submitted" }];
+    return true;
+}
+
+export type review_decision_result = "ok" | "not_found" | "not_in_review" | "own_submission" | "comment_required";
+
+// Approves a notice, or sends it back with a comment. Officers can't decide on their own submissions.
+export function decide_review(
+    id: string,
+    decision: "approved" | "changes_requested",
+    reviewer_id: string,
+    comment: string,
+    now: number = Date.now(),
+): review_decision_result {
+    const item = find_advisory(id);
+    if (!item) return "not_found";
+    if (!is_pending(item) || item.review?.state !== "in_review") return "not_in_review";
+    if (item.review.submitted_by === reviewer_id) return "own_submission";
+    if (decision === "changes_requested" && !comment) return "comment_required";
+
+    item.review = { ...item.review, state: decision, decided_by: reviewer_id, decided_at: now };
+    item.review_log = [
+        ...(item.review_log ?? []),
+        { at: now, by: reviewer_id, action: decision, ...(comment ? { comment } : {}) },
+    ];
+    return "ok";
 }
