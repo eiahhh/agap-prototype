@@ -246,7 +246,8 @@ describe("Pending_advisories widget", () => {
         const pending = list_pending_advisories();
         render(<Pending_advisories advisories={pending} />);
 
-        expect(screen.getByText("3 advisories pending")).toBeTruthy();
+        expect(screen.getByText(/^3 advisories pending/)).toBeTruthy();
+        expect(screen.getByRole("link", { name: "Manage all" }).getAttribute("href")).toBe("/dashboard/announcements");
         expect(screen.getByRole("link", { name: "New advisory" }).getAttribute("href")).toBe("/dashboard/advisories/new");
         const cards = screen.getAllByRole("listitem");
         expect(cards).toHaveLength(3);

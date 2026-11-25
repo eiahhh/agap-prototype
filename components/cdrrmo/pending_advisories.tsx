@@ -29,7 +29,10 @@ export function Pending_advisories({ advisories }: { advisories: advisory[] }) {
                 </h2>
                 <div className="flex items-center gap-3">
                     <p className="text-[11px] leading-[16.5px] text-agap-muted">
-                        {advisories.length} {advisories.length === 1 ? "advisory" : "advisories"} pending
+                        {advisories.length} {advisories.length === 1 ? "advisory" : "advisories"} pending ·{" "}
+                        <Link href="/dashboard/announcements" className="font-semibold text-agap-700 underline">
+                            Manage all
+                        </Link>
                     </p>
                     <Link href="/dashboard/advisories/new" className={`h-9 text-[11px] ${primary_button_class}`}>
                         New advisory
