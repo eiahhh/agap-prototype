@@ -79,7 +79,7 @@ describe("track_recent_announcements", () => {
     it("lists published and cancelled advisories newest first, with an overall status", () => {
         const tracked = track_recent_announcements(list_advisories(), now);
 
-        expect(tracked.map((item) => item.status)).toEqual(["delivering", "partially_failed", "cancelled", "delivered"]);
+        expect(tracked.map((item) => item.status)).toEqual(["delivering", "partially_failed", "cancelled", "delivered", "delivered"]);
         expect(tracked.map((item) => item.happened_at)).toEqual([...tracked.map((item) => item.happened_at)].sort((a, b) => b - a));
     });
 
@@ -112,7 +112,7 @@ describe("Recent_announcements widget", () => {
         render(<Recent_announcements announcements={tracked} />);
 
         const rows = screen.getAllByRole("listitem").filter((row) => row.parentElement!.tagName === "OL");
-        expect(rows).toHaveLength(4);
+        expect(rows).toHaveLength(5);
 
         const delivering = within(rows[0]);
         expect(delivering.getByText("Delivering")).toBeTruthy();

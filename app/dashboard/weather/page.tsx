@@ -2,10 +2,14 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Auto_refresh } from "@/components/cdrrmo/auto_refresh";
 import { Weather_widgets } from "@/components/cdrrmo/weather_widgets";
+import { Advisory_correlation } from "@/components/weather/advisory_correlation";
 import { Hourly_outlook } from "@/components/weather/hourly_outlook";
 import { Station_readings } from "@/components/weather/station_readings";
 import { require_cdrrmo } from "@/lib/auth/current_user";
-import { get_hourly_outlook, get_station_readings, get_weather_snapshot } from "@/lib/cdrrmo/weather";
+import { list_advisories } from "@/lib/cdrrmo/advisories";
+import { correlate_advisories, missed_days, recommend_advisory } from "@/lib/cdrrmo/advisory_correlation";
+import { get_hourly_outlook, get_station_readings, get_weather_snapshot, snapshot_risk } from "@/lib/cdrrmo/weather";
+import { get_weather_history } from "@/lib/cdrrmo/weather_history";
 
 export const metadata: Metadata = {
     title: "AGAP | Weather Monitoring",
@@ -39,6 +43,9 @@ async function Weather_monitoring() {
     const snapshot = get_weather_snapshot();
     // One clock for the whole render, so every section agrees on what "now" is.
     const now = snapshot.observed_at;
+    const risk = snapshot_risk(snapshot);
+    const advisories = list_advisories();
+    const { recommendation, active } = recommend_advisory(risk, advisories, now);
 
     return (
         <>
@@ -54,6 +61,14 @@ async function Weather_monitoring() {
                     <Hourly_outlook outlook={get_hourly_outlook()} now={now} />
                 </div>
             </section>
+
+            <Advisory_correlation
+                risk={risk}
+                recommendation={recommendation}
+                active_titles={active.map((item) => item.title)}
+                correlated={correlate_advisories(advisories, now)}
+                missed={missed_days(get_weather_history(30, now), advisories, now)}
+            />
         </>
     );
 }

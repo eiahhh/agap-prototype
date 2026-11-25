@@ -187,3 +187,12 @@ export function get_hourly_outlook(hours = 24): outlook_hour[] {
         };
     });
 }
+
+export function snapshot_risk(snapshot: weather_snapshot): risk_level {
+    return assess_risk({
+        rainfall_mm_per_hr: snapshot.current.rainfall_mm_per_hr,
+        wind_signal: snapshot.wind_signal,
+        heat_index_c: snapshot.current.heat_index_c,
+        rainfall_warning: snapshot.rainfall_warning,
+    });
+}
