@@ -126,3 +126,64 @@ export function get_weather_snapshot(now: number = Date.now()): weather_snapshot
         ],
     };
 }
+
+export type station_status = "normal" | "alert" | "critical";
+
+export const station_status_labels: Record<station_status, string> = {
+    normal: "Normal",
+    alert: "Alert",
+    critical: "Critical",
+};
+
+export type station_reading = {
+    station: string;
+    barangay: string;
+    rainfall_mm_per_hr: number;
+    rainfall_last_24h_mm: number;
+    water_level_m: number | null; // null when the station has no river gauge
+    alert_level_m: number | null;
+};
+
+// Rain gauge and river level stations around the city.
+export function get_station_readings(): station_reading[] {
+    return [
+        { station: "Julian River Bridge", barangay: "Salitran II", rainfall_mm_per_hr: 12.4, rainfall_last_24h_mm: 86, water_level_m: 3.1, alert_level_m: 3.0 },
+        { station: "Paliparan Creek", barangay: "Paliparan III", rainfall_mm_per_hr: 10.8, rainfall_last_24h_mm: 79, water_level_m: 2.2, alert_level_m: 2.5 },
+        { station: "City Hall AWS", barangay: "Zone I (Poblacion)", rainfall_mm_per_hr: 9.2, rainfall_last_24h_mm: 64, water_level_m: null, alert_level_m: null },
+        { station: "Sampaloc Drainage Outfall", barangay: "Sampaloc IV", rainfall_mm_per_hr: 8.1, rainfall_last_24h_mm: 58, water_level_m: 1.4, alert_level_m: 1.8 },
+        { station: "Langkaan Industrial AWS", barangay: "Langkaan II", rainfall_mm_per_hr: 5.6, rainfall_last_24h_mm: 41, water_level_m: null, alert_level_m: null },
+    ];
+}
+
+// Critical once the river is at or above its alert level or rain is torrential,
+// alert when it is within 0.5 m of the alert level or rain is heavy.
+export function station_status(reading: station_reading): station_status {
+    const { water_level_m, alert_level_m, rainfall_mm_per_hr } = reading;
+    const has_gauge = water_level_m !== null && alert_level_m !== null;
+    if ((has_gauge && water_level_m >= alert_level_m) || rainfall_mm_per_hr >= 30) return "critical";
+    if ((has_gauge && water_level_m >= alert_level_m - 0.5) || rainfall_mm_per_hr >= 15) return "alert";
+    return "normal";
+}
+
+export type outlook_hour = {
+    hour_offset: number;
+    rainfall_mm_per_hr: number;
+    rain_chance_pct: number;
+    temperature_c: number;
+    wind_kph: number;
+};
+
+// Hour-by-hour outlook for the next day: heavy rain easing into the evening, then building again overnight.
+export function get_hourly_outlook(hours = 24): outlook_hour[] {
+    const rain_curve = [11, 13, 10, 8, 6, 4, 3, 2, 2, 1, 1, 2, 3, 5, 7, 9, 8, 6, 4, 3, 2, 2, 1, 1];
+    return Array.from({ length: hours }, (_, index) => {
+        const rainfall = rain_curve[index % rain_curve.length];
+        return {
+            hour_offset: index + 1,
+            rainfall_mm_per_hr: rainfall,
+            rain_chance_pct: Math.min(95, 25 + rainfall * 6),
+            temperature_c: 25 + Math.round((12 - rainfall) / 4),
+            wind_kph: 18 + rainfall * 2,
+        };
+    });
+}

@@ -22,7 +22,7 @@ export function Cdrrmo_view({ user }: { user: demo_user }) {
             description="Monitor weather, manage class suspension advisories, and follow up on notifications."
         >
             <Auto_refresh />
-            <Weather_widgets snapshot={snapshot} />
+            <Weather_widgets snapshot={snapshot} details_href="/dashboard/weather" />
 
             <div className="grid grid-cols-1 gap-x-6 lg:grid-cols-3">
                 <div className="min-w-0 lg:col-span-2">
