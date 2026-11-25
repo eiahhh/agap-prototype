@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { input_field_class, label_class, primary_button_class } from "@/components/auth/form_styles";
+import { Records_summary } from "@/components/records/records_summary";
 import { Records_table } from "@/components/records/records_table";
 import { require_cdrrmo } from "@/lib/auth/current_user";
 import { advisory_level_labels, advisory_levels, list_advisories } from "@/lib/cdrrmo/advisories";
@@ -15,6 +16,7 @@ import {
     records_href,
     type record_filter,
 } from "@/lib/cdrrmo/records";
+import { chart_range, published_per_day, summarize_records } from "@/lib/cdrrmo/records_summary";
 import { get_weather_snapshot } from "@/lib/cdrrmo/weather";
 
 export const metadata: Metadata = {
@@ -47,11 +49,14 @@ async function Records({ search_params }: { search_params: Promise<Record<string
     const now = get_weather_snapshot().observed_at;
     const matching = filter_records(all_records(list_advisories(), now), filter);
     const { rows, page, pages } = paginate(matching, filter.page);
+    const chart = chart_range(filter.from, filter.to, now);
     const is_filtered = Boolean(filter.from || filter.to || filter.level || filter.outcome || filter.q);
 
     return (
         <>
             <Record_filters filter={filter} />
+
+            <Records_summary summary={summarize_records(matching)} per_day={published_per_day(matching, chart.from, chart.to)} />
 
             <section aria-labelledby="records-heading" className="mt-6 rounded-[10px] border-[0.8px] border-agap-line bg-agap-field p-5">
                 <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
