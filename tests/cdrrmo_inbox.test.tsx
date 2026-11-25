@@ -180,6 +180,7 @@ describe("Inbox_notifications widget", () => {
 
         expect(screen.getByLabelText("3 unread")).toBeTruthy();
         expect(screen.getByRole("button", { name: "Mark all as read" })).toBeTruthy();
+        expect(screen.getByRole("link", { name: "View all" }).getAttribute("href")).toBe("/dashboard/notifications");
 
         const rows = screen.getAllByRole("listitem");
         expect(rows).toHaveLength(6);

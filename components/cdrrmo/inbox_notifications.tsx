@@ -57,7 +57,15 @@ export function Inbox_notifications({
                 )}
             </div>
 
-            <Widget_card title="Notifications" className="mt-3">
+            <Widget_card
+                title="Notifications"
+                className="mt-3"
+                action={
+                    <Link href="/dashboard/notifications" className={text_button_class}>
+                        View all
+                    </Link>
+                }
+            >
                 {notifications.length === 0 ? (
                     <p className="text-center text-xs text-agap-muted">You&apos;re all caught up.</p>
                 ) : (
