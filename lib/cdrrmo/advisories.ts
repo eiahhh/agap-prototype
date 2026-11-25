@@ -43,7 +43,18 @@ export type advisory = {
     cancelled_at?: number;
     updated_by?: string;
     failed_channels?: delivery_channel[]; // channels that failed to deliver after publishing
+    revisions?: advisory_revision[]; // updates made after publishing, oldest first
+    last_sent_at?: number; // when the latest version went out (publish or update)
 };
+
+export type advisory_revision = {
+    at: number;
+    by: string;
+    note: string; // what changed, as written by the officer
+    previous: Pick<advisory, "title" | "level" | "coverage" | "message">;
+};
+
+export type advisory_content = Omit<advisory_input, "scheduled_for">;
 
 export type advisory_input = {
     title: string;
@@ -227,5 +238,30 @@ export function cancel_advisory(id: string, canceller_id: string, now: number = 
     item.cancelled_at = now;
     item.updated_at = now;
     item.updated_by = canceller_id;
+    return true;
+}
+
+// Updates a notice that was already published, and re-sends it. The note says what changed,
+// and the previous wording is kept so the history shows exactly what was corrected.
+export function revise_advisory(
+    id: string,
+    content: advisory_content,
+    note: string,
+    editor_id: string,
+    now: number = Date.now(),
+): boolean {
+    const item = find_advisory(id);
+    if (!item || item.status !== "published") return false;
+
+    const previous = { title: item.title, level: item.level, coverage: item.coverage, message: item.message };
+    item.revisions = [...(item.revisions ?? []), { at: now, by: editor_id, note, previous }];
+    item.title = content.title;
+    item.level = content.level;
+    item.coverage = content.coverage;
+    item.message = content.message;
+    item.last_sent_at = now;
+    item.failed_channels = undefined;
+    item.updated_at = now;
+    item.updated_by = editor_id;
     return true;
 }

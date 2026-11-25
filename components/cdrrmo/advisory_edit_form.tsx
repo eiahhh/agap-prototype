@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { create_advisory_action, save_advisory } from "@/app/dashboard/advisories/actions";
+import { create_advisory_action, revise_advisory_action, save_advisory } from "@/app/dashboard/advisories/actions";
 import {
     error_border_class,
     error_text_class,
@@ -23,23 +23,31 @@ export const empty_advisory_values: Record<advisory_field, string> = {
     coverage: "Citywide",
     message: "",
     scheduled_for: "",
+    revision_note: "",
 };
 
-// Without an advisory_id the form creates a new advisory; with one it edits that advisory.
+// Without an advisory_id the form creates a new advisory; with one it edits that draft or scheduled advisory.
+// With is_revision, it updates a published notice instead: no schedule, and a note saying what changed.
 export function Advisory_edit_form({
     advisory_id,
+    is_revision = false,
     initial_values = empty_advisory_values,
     level_options,
     return_to = "/dashboard",
 }: {
     advisory_id?: string;
+    is_revision?: boolean;
     initial_values?: Record<advisory_field, string>;
     level_options: level_option[];
     return_to?: string; // already checked with safe_return_path
 }) {
     const is_new = advisory_id === undefined;
     const [state, form_action, is_saving] = useActionState(
-        is_new ? create_advisory_action : save_advisory.bind(null, advisory_id),
+        is_new
+            ? create_advisory_action
+            : is_revision
+              ? revise_advisory_action.bind(null, advisory_id)
+              : save_advisory.bind(null, advisory_id),
         initial_state,
     );
     const [values, set_values] = useState(initial_values);
@@ -153,25 +161,48 @@ export function Advisory_edit_form({
                 {error_for("message")}
             </div>
 
-            <div>
-                <label htmlFor="scheduled_for" className={`block ${label_class}`}>
-                    Publish at (Philippine time)
-                </label>
-                <input
-                    id="scheduled_for"
-                    name="scheduled_for"
-                    type="datetime-local"
-                    value={values.scheduled_for}
-                    onChange={update("scheduled_for")}
-                    {...aria("scheduled_for")}
-                    className={`mt-1.5 ${input_field_class} ${errors.scheduled_for ? error_border_class : ""}`}
-                />
-                {error_for("scheduled_for") ?? (
-                    <p className="mt-1.5 text-[11px] leading-[16.5px] text-agap-muted">
-                        Leave empty to keep this as a draft.
-                    </p>
-                )}
-            </div>
+            {is_revision ? (
+                <div>
+                    <label htmlFor="revision_note" className={`block ${label_class}`}>
+                        What changed?
+                    </label>
+                    <input
+                        id="revision_note"
+                        name="revision_note"
+                        type="text"
+                        placeholder="Added Burol Main to the coverage"
+                        value={values.revision_note}
+                        onChange={update("revision_note")}
+                        {...aria("revision_note")}
+                        className={`mt-1.5 ${input_field_class} ${errors.revision_note ? error_border_class : ""}`}
+                    />
+                    {error_for("revision_note") ?? (
+                        <p className="mt-1.5 text-[11px] leading-[16.5px] text-agap-muted">
+                            Shown in the notice&apos;s history. Saving re-sends the updated notice to every channel.
+                        </p>
+                    )}
+                </div>
+            ) : (
+                <div>
+                    <label htmlFor="scheduled_for" className={`block ${label_class}`}>
+                        Publish at (Philippine time)
+                    </label>
+                    <input
+                        id="scheduled_for"
+                        name="scheduled_for"
+                        type="datetime-local"
+                        value={values.scheduled_for}
+                        onChange={update("scheduled_for")}
+                        {...aria("scheduled_for")}
+                        className={`mt-1.5 ${input_field_class} ${errors.scheduled_for ? error_border_class : ""}`}
+                    />
+                    {error_for("scheduled_for") ?? (
+                        <p className="mt-1.5 text-[11px] leading-[16.5px] text-agap-muted">
+                            Leave empty to keep this as a draft.
+                        </p>
+                    )}
+                </div>
+            )}
 
             <div className="flex justify-end gap-2 pt-2">
                 <Link
@@ -181,7 +212,7 @@ export function Advisory_edit_form({
                     {is_new ? "Cancel" : "Discard changes"}
                 </Link>
                 <button type="submit" disabled={is_saving} className={`h-10 text-xs ${primary_button_class}`}>
-                    {is_saving ? "Saving…" : is_new ? "Save advisory" : "Save changes"}
+                    {is_saving ? "Saving…" : is_new ? "Save advisory" : is_revision ? "Update and re-send" : "Save changes"}
                 </button>
             </div>
         </form>
