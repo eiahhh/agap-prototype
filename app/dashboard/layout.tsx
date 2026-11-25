@@ -61,6 +61,13 @@ async function Account_nav() {
                     )}
                     {user.role === "cdrrmo" && (
                         <li>
+                            <Link href="/dashboard/records" className="text-agap-700 hover:underline">
+                                Records
+                            </Link>
+                        </li>
+                    )}
+                    {user.role === "cdrrmo" && (
+                        <li>
                             <Notifications_link user_id={user.id} />
                         </li>
                     )}
