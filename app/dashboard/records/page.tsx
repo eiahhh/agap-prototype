@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { input_field_class, label_class, primary_button_class } from "@/components/auth/form_styles";
+import { Activity_list } from "@/components/records/activity_list";
 import { Records_summary } from "@/components/records/records_summary";
 import { Records_table } from "@/components/records/records_table";
 import { require_cdrrmo } from "@/lib/auth/current_user";
+import { activity_actions, activity_log, parse_activity_action } from "@/lib/cdrrmo/activity_log";
 import { advisory_level_labels, advisory_levels, list_advisories } from "@/lib/cdrrmo/advisories";
 import {
     all_records,
@@ -44,7 +46,17 @@ export default function records_page({ searchParams }: PageProps<"/dashboard/rec
 // Reads the session and the URL, so it streams in behind the Suspense boundary.
 async function Records({ search_params }: { search_params: Promise<Record<string, string | string[] | undefined>> }) {
     await require_cdrrmo();
-    const filter = parse_record_filter(await search_params);
+    const params = await search_params;
+    if (params.view === "activity") {
+        return (
+            <>
+                <View_tabs view="activity" />
+                <Activity params={params} />
+            </>
+        );
+    }
+
+    const filter = parse_record_filter(params);
     // The weather reading time doubles as the page clock, like the dashboard.
     const now = get_weather_snapshot().observed_at;
     const matching = filter_records(all_records(list_advisories(), now), filter);
@@ -54,6 +66,7 @@ async function Records({ search_params }: { search_params: Promise<Record<string
 
     return (
         <>
+            <View_tabs view="records" />
             <Record_filters filter={filter} />
 
             <Records_summary summary={summarize_records(matching)} per_day={published_per_day(matching, chart.from, chart.to)} />
@@ -88,7 +101,7 @@ function Record_filters({ filter }: { filter: record_filter }) {
             role="search"
             aria-label="Filter records"
             action="/dashboard/records"
-            className="mt-8 grid grid-cols-2 gap-3 rounded-[10px] border-[0.8px] border-agap-line bg-agap-field p-4 sm:grid-cols-3 lg:grid-cols-6"
+            className="mt-4 grid grid-cols-2 gap-3 rounded-[10px] border-[0.8px] border-agap-line bg-agap-field p-4 sm:grid-cols-3 lg:grid-cols-6"
         >
             <div className="col-span-2 sm:col-span-3 lg:col-span-2">
                 <label htmlFor="q" className={`block ${label_class}`}>
@@ -173,5 +186,103 @@ function Pagination({ filter, page, pages }: { filter: record_filter; page: numb
                 <span />
             )}
         </nav>
+    );
+}
+
+function View_tabs({ view }: { view: "records" | "activity" }) {
+    const tab_class = (is_active: boolean) =>
+        `rounded-[8px] px-3 py-1.5 text-[11px] font-semibold transition ${
+            is_active ? "bg-agap-700 text-white" : "text-agap-muted hover:bg-agap-line/60 hover:text-agap-ink"
+        }`;
+    return (
+        <nav aria-label="Records view" className="mt-8 flex gap-1">
+            <Link
+                href="/dashboard/records"
+                aria-current={view === "records" ? "page" : undefined}
+                className={tab_class(view === "records")}
+            >
+                Records
+            </Link>
+            <Link
+                href="/dashboard/records?view=activity"
+                aria-current={view === "activity" ? "page" : undefined}
+                className={tab_class(view === "activity")}
+            >
+                Activity log
+            </Link>
+        </nav>
+    );
+}
+
+function activity_href(action: string | null, page: number): string {
+    const params = new URLSearchParams({ view: "activity" });
+    if (action) params.set("action", action);
+    if (page > 1) params.set("page", String(page));
+    return `/dashboard/records?${params}`;
+}
+
+function Activity({ params }: { params: Record<string, string | string[] | undefined> }) {
+    const action = parse_activity_action(params.action);
+    const all = activity_log(list_advisories());
+    const matching = action ? all.filter((entry) => entry.action === action) : all;
+    const { rows, page, pages } = paginate(matching, parse_record_filter(params).page);
+    const link_class =
+        "rounded-[8px] border-[0.8px] border-agap-line bg-white px-3 py-1.5 text-[11px] font-semibold text-agap-ink hover:border-agap-700";
+
+    return (
+        <>
+            <form
+                aria-label="Filter activity"
+                action="/dashboard/records"
+                className="mt-4 flex flex-wrap items-end gap-3 rounded-[10px] border-[0.8px] border-agap-line bg-agap-field p-4"
+            >
+                <input type="hidden" name="view" value="activity" />
+                <div>
+                    <label htmlFor="action" className={`block ${label_class}`}>
+                        Action
+                    </label>
+                    <select id="action" name="action" defaultValue={action ?? ""} className={`mt-1 ${input_field_class} h-9 w-[220px]`}>
+                        <option value="">Every action</option>
+                        {activity_actions.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <button type="submit" className={`h-9 text-[11px] ${primary_button_class}`}>
+                    Apply
+                </button>
+            </form>
+
+            <section aria-labelledby="activity-heading" className="mt-6 rounded-[10px] border-[0.8px] border-agap-line bg-agap-field p-5">
+                <h2 id="activity-heading" className="mb-3 text-sm font-medium text-agap-ink">
+                    {matching.length} {matching.length === 1 ? "entry" : "entries"}
+                </h2>
+                <Activity_list entries={rows} />
+            </section>
+
+            {pages > 1 && (
+                <nav aria-label="Pages" className="mt-4 flex items-center justify-between gap-3 text-[11px] text-agap-muted">
+                    {page > 1 ? (
+                        <Link href={activity_href(action, page - 1)} className={link_class}>
+                            Previous
+                        </Link>
+                    ) : (
+                        <span />
+                    )}
+                    <span>
+                        Page {page} of {pages}
+                    </span>
+                    {page < pages ? (
+                        <Link href={activity_href(action, page + 1)} className={link_class}>
+                            Next
+                        </Link>
+                    ) : (
+                        <span />
+                    )}
+                </nav>
+            )}
+        </>
     );
 }
