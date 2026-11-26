@@ -5,6 +5,7 @@ import { user_roles, type user_role } from "./demo_users";
 export const route_roles: Record<string, readonly user_role[]> = {
     "/dashboard": user_roles,
     "/dashboard/requests": ["super_admin"],
+    "/dashboard/advisories": ["cdrrmo"],
 };
 
 function matches_prefix(pathname: string, prefix: string): boolean {

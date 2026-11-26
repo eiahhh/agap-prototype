@@ -17,3 +17,10 @@ export async function require_super_admin(): Promise<demo_user> {
     if (user.role !== "super_admin") redirect("/unauthorized");
     return user;
 }
+
+// Class suspension advisories are managed by CDRRMO personnel only.
+export async function require_cdrrmo(): Promise<demo_user> {
+    const user = await require_user();
+    if (user.role !== "cdrrmo") redirect("/unauthorized");
+    return user;
+}
