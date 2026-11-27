@@ -1,6 +1,6 @@
-import { is_advisory_level, type advisory_input } from "./advisories";
+import { is_advisory_level, type advisory_content, type advisory_input } from "./advisories";
 
-export type advisory_field = "title" | "level" | "coverage" | "message" | "scheduled_for";
+export type advisory_field = "title" | "level" | "coverage" | "message" | "scheduled_for" | "revision_note";
 
 export type advisory_form_state = {
     field_errors?: Partial<Record<advisory_field, string>>;
@@ -30,6 +30,7 @@ export function validate_advisory_form(
         coverage: String(form_data.get("coverage") ?? "").trim().replace(/\s+/g, " "),
         message: String(form_data.get("message") ?? "").trim(),
         scheduled_for: String(form_data.get("scheduled_for") ?? "").trim(),
+        revision_note: "",
     };
     const field_errors: NonNullable<advisory_form_state["field_errors"]> = {};
 
@@ -69,4 +70,43 @@ export function validate_advisory_form(
 // Inverse of parse_manila_datetime, for pre-filling a datetime-local input.
 export function to_manila_datetime_input(timestamp: number): string {
     return new Date(timestamp + 8 * 3_600_000).toISOString().slice(0, 16);
+}
+
+// Where to go after saving. Only our own announcement and dashboard pages are allowed,
+// so a crafted link can't send people to another site.
+const return_path_pattern = /^\/dashboard(\/announcements(\/[0-9a-f-]{36})?)?$/;
+
+export function safe_return_path(value: unknown): string {
+    return typeof value === "string" && return_path_pattern.test(value) ? value : "/dashboard";
+}
+
+const revision_note_max_length = 300;
+
+// For updating a published notice: same content rules, no schedule, and a note saying what changed.
+export function validate_revision_form(
+    form_data: FormData,
+): { content: advisory_content; note: string } | { field_errors: NonNullable<advisory_form_state["field_errors"]>; values: Record<advisory_field, string> } {
+    const note = String(form_data.get("revision_note") ?? "").trim().replace(/\s+/g, " ");
+    const without_schedule = new FormData();
+    for (const [key, value] of form_data.entries()) if (key !== "scheduled_for") without_schedule.append(key, value);
+    const result = validate_advisory_form(without_schedule);
+
+    const note_error =
+        note.length < 5
+            ? "Say what changed, e.g. \"Added Burol Main to the coverage\"."
+            : note.length > revision_note_max_length
+              ? "Use 300 characters or fewer."
+              : undefined;
+
+    if ("field_errors" in result || note_error) {
+        const field_errors = "field_errors" in result ? result.field_errors : {};
+        const values = "values" in result ? result.values : ({} as Record<advisory_field, string>);
+        return {
+            field_errors: note_error ? { ...field_errors, revision_note: note_error } : field_errors,
+            values: { ...values, revision_note: note, scheduled_for: "" },
+        };
+    }
+
+    const { title, level, coverage, message } = result.input;
+    return { content: { title, level, coverage, message }, note };
 }

@@ -15,7 +15,7 @@ const date_time_format = new Intl.DateTimeFormat("en-PH", {
 
 const number_format = new Intl.NumberFormat("en-PH");
 
-const status_badge_class: Record<announcement_status, string> = {
+export const delivery_status_badge_class: Record<announcement_status, string> = {
     delivered: "bg-agap-100 text-agap-900",
     delivering: "bg-sky-100 text-sky-900",
     partially_failed: "bg-red-100 text-red-900",
@@ -65,7 +65,7 @@ function Announcement_row({ announcement }: { announcement: tracked_announcement
                 </div>
                 <div className="text-right">
                     <span
-                        className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${status_badge_class[status]}`}
+                        className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${delivery_status_badge_class[status]}`}
                     >
                         {announcement_status_labels[status]}
                     </span>
@@ -89,7 +89,7 @@ function Announcement_row({ announcement }: { announcement: tracked_announcement
     );
 }
 
-function Delivery_cell({ delivery }: { delivery: channel_delivery }) {
+export function Delivery_cell({ delivery }: { delivery: channel_delivery }) {
     const percent = delivery.total === 0 ? 0 : Math.round((delivery.sent / delivery.total) * 100);
     const label = delivery_channel_labels[delivery.channel];
     const detail =

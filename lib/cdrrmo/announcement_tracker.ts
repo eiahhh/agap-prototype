@@ -48,9 +48,10 @@ const channel_plan: Record<delivery_channel, { total: number; duration_ms: numbe
     sms: { total: 48_500, duration_ms: 15 * minute },
 };
 
-export function channel_deliveries(item: advisory, now: number): channel_delivery[] {
+export function channel_deliveries(item: advisory, now: number = Date.now()): channel_delivery[] {
     if (item.status !== "published" || item.published_at === undefined) return [];
-    const elapsed = Math.max(0, now - item.published_at);
+    // An update re-sends the notice, so progress restarts from the latest send.
+    const elapsed = Math.max(0, now - (item.last_sent_at ?? item.published_at));
 
     return delivery_channels.map((channel) => {
         const { total, duration_ms } = channel_plan[channel];
@@ -69,14 +70,14 @@ export function announcement_status(item: advisory, deliveries: channel_delivery
     return "delivered";
 }
 
-// Published and cancelled advisories, newest first.
+// Published and cancelled advisories that aren't archived, newest first.
 export function track_recent_announcements(
     items: readonly advisory[],
     now: number = Date.now(),
     limit = 5,
 ): tracked_announcement[] {
     return items
-        .filter((item) => item.status === "published" || item.status === "cancelled")
+        .filter((item) => (item.status === "published" || item.status === "cancelled") && item.archived_at === undefined)
         .map((item) => {
             const deliveries = channel_deliveries(item, now);
             return {

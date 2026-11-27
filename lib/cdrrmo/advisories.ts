@@ -43,7 +43,20 @@ export type advisory = {
     cancelled_at?: number;
     updated_by?: string;
     failed_channels?: delivery_channel[]; // channels that failed to deliver after publishing
+    revisions?: advisory_revision[]; // updates made after publishing, oldest first
+    last_sent_at?: number; // when the latest version went out (publish or update)
+    archived_at?: number; // archived notices keep their status but leave the active lists
+    archived_by?: string;
 };
+
+export type advisory_revision = {
+    at: number;
+    by: string;
+    note: string; // what changed, as written by the officer
+    previous: Pick<advisory, "title" | "level" | "coverage" | "message">;
+};
+
+export type advisory_content = Omit<advisory_input, "scheduled_for">;
 
 export type advisory_input = {
     title: string;
@@ -125,6 +138,7 @@ function seed(now: number) {
 }
 
 // Past suspensions for the high-risk days in the weather history, published at 5:00 AM.
+// Ones older than 14 days are archived.
 // The oldest high-risk day is left without one, so the weather page has a missed day to point out.
 function past_suspensions(now: number): Array<Omit<advisory, "id" | "updated_at">> {
     const high_risk_days = get_weather_history(30, now)
@@ -143,6 +157,8 @@ function past_suspensions(now: number): Array<Omit<advisory, "id" | "updated_at"
             status: "published",
             published_at,
             created_at: published_at - 30 * minute,
+            // Older notices have been tidied away into the archive.
+            ...(now - published_at > 14 * 24 * hour ? { archived_at: published_at + 2 * 24 * hour, archived_by: "u_cdrrmo" } : {}),
         };
     });
 }
@@ -227,5 +243,54 @@ export function cancel_advisory(id: string, canceller_id: string, now: number = 
     item.cancelled_at = now;
     item.updated_at = now;
     item.updated_by = canceller_id;
+    return true;
+}
+
+// Updates a notice that was already published, and re-sends it. The note says what changed,
+// and the previous wording is kept so the history shows exactly what was corrected.
+export function revise_advisory(
+    id: string,
+    content: advisory_content,
+    note: string,
+    editor_id: string,
+    now: number = Date.now(),
+): boolean {
+    const item = find_advisory(id);
+    if (!item || item.status !== "published" || is_archived(item)) return false;
+
+    const previous = { title: item.title, level: item.level, coverage: item.coverage, message: item.message };
+    item.revisions = [...(item.revisions ?? []), { at: now, by: editor_id, note, previous }];
+    item.title = content.title;
+    item.level = content.level;
+    item.coverage = content.coverage;
+    item.message = content.message;
+    item.last_sent_at = now;
+    item.failed_channels = undefined;
+    item.updated_at = now;
+    item.updated_by = editor_id;
+    return true;
+}
+
+export function is_archived(item: advisory): boolean {
+    return item.archived_at !== undefined;
+}
+
+// Only notices that are finished (published or cancelled) can be archived. Drafts and scheduled
+// notices still need a decision, so they have to be published or cancelled first.
+export function archive_advisory(id: string, archiver_id: string, now: number = Date.now()): boolean {
+    const item = find_advisory(id);
+    if (!item || is_pending(item) || is_archived(item)) return false;
+
+    item.archived_at = now;
+    item.archived_by = archiver_id;
+    return true;
+}
+
+export function restore_advisory(id: string): boolean {
+    const item = find_advisory(id);
+    if (!item || !is_archived(item)) return false;
+
+    item.archived_at = undefined;
+    item.archived_by = undefined;
     return true;
 }

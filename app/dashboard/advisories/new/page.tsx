@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
+import { Back_link } from "@/components/cdrrmo/back_link";
 import { Advisory_edit_form } from "@/components/cdrrmo/advisory_edit_form";
 import { require_cdrrmo } from "@/lib/auth/current_user";
+import { safe_return_path } from "@/lib/cdrrmo/advisory_form";
 import { advisory_level_labels, advisory_levels } from "@/lib/cdrrmo/advisories";
 
 export const metadata: Metadata = {
@@ -11,13 +12,13 @@ export const metadata: Metadata = {
 
 const level_options = advisory_levels.map((level) => ({ value: level, label: advisory_level_labels[level] }));
 
-export default function new_advisory_page() {
+export default function new_advisory_page({ searchParams }: PageProps<"/dashboard/advisories/new">) {
     return (
         <main className="flex-1 px-6 py-10">
             <div className="mx-auto w-full max-w-[720px]">
-                <Link href="/dashboard" className="text-[11px] font-semibold leading-[16.5px] text-agap-700 underline">
-                    Back to dashboard
-                </Link>
+                <Suspense fallback={<span className="text-[11px] leading-[16.5px]">&nbsp;</span>}>
+                    <Back_link search_params={searchParams} />
+                </Suspense>
                 <p className="mt-6 text-[10px] font-semibold uppercase leading-[15px] tracking-[1px] text-agap-500">
                     Class suspension advisory
                 </p>
@@ -30,7 +31,7 @@ export default function new_advisory_page() {
                 </p>
 
                 <Suspense fallback={<p className="mt-8 text-xs text-agap-muted">Loading…</p>}>
-                    <New_advisory_form />
+                    <New_advisory_form search_params={searchParams} />
                 </Suspense>
             </div>
         </main>
@@ -38,7 +39,8 @@ export default function new_advisory_page() {
 }
 
 // Reads the session, so it streams in behind the Suspense boundary.
-async function New_advisory_form() {
+async function New_advisory_form({ search_params }: { search_params: Promise<Record<string, string | string[] | undefined>> }) {
     await require_cdrrmo();
-    return <Advisory_edit_form level_options={level_options} />;
+    const return_to = safe_return_path((await search_params).return_to);
+    return <Advisory_edit_form level_options={level_options} return_to={return_to} />;
 }
