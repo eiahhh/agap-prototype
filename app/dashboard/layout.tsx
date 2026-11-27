@@ -37,6 +37,13 @@ async function Account_nav() {
                             Dashboard
                         </Link>
                     </li>
+                    {user.role === "cdrrmo" && (
+                        <li>
+                            <Link href="/dashboard/weather" className="text-agap-700 hover:underline">
+                                Weather
+                            </Link>
+                        </li>
+                    )}
                     {user.role === "super_admin" && (
                         <li>
                             <Link href="/dashboard/requests" className="text-agap-700 hover:underline">

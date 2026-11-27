@@ -1,7 +1,8 @@
+import Link from "next/link";
 import {
-    assess_risk,
     rainfall_warning_labels,
     risk_labels,
+    snapshot_risk,
     type rainfall_warning,
     type risk_level,
     type weather_snapshot,
@@ -33,14 +34,9 @@ const risk_guidance: Record<risk_level, string> = {
 };
 
 // Live weather and risk widgets for the CDRRMO dashboard.
-export function Weather_widgets({ snapshot }: { snapshot: weather_snapshot }) {
+export function Weather_widgets({ snapshot, details_href }: { snapshot: weather_snapshot; details_href?: string }) {
     const { current } = snapshot;
-    const risk = assess_risk({
-        rainfall_mm_per_hr: current.rainfall_mm_per_hr,
-        wind_signal: snapshot.wind_signal,
-        heat_index_c: current.heat_index_c,
-        rainfall_warning: snapshot.rainfall_warning,
-    });
+    const risk = snapshot_risk(snapshot);
 
     return (
         <section aria-labelledby="weather-heading" className="mt-8">
@@ -50,6 +46,14 @@ export function Weather_widgets({ snapshot }: { snapshot: weather_snapshot }) {
                 </h2>
                 <p className="text-[11px] leading-[16.5px] text-agap-muted">
                     {snapshot.location} · Updated {time_format.format(snapshot.observed_at)}
+                    {details_href && (
+                        <>
+                            {" · "}
+                            <Link href={details_href} className="font-semibold text-agap-700 underline">
+                                Open weather monitoring
+                            </Link>
+                        </>
+                    )}
                 </p>
             </div>
 

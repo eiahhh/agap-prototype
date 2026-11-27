@@ -3,6 +3,8 @@
 
 import { randomUUID } from "node:crypto";
 import type { delivery_channel } from "./announcement_tracker";
+import { rainfall_warning_labels } from "./weather";
+import { get_weather_history } from "./weather_history";
 
 export const advisory_levels = ["all", "preschool_to_elementary", "preschool_to_high_school", "college"] as const;
 export type advisory_level = (typeof advisory_levels)[number];
@@ -106,15 +108,6 @@ function seed(now: number) {
             failed_channels: ["facebook"],
         },
         {
-            title: "Resumption of classes after Signal No. 1 is lifted",
-            level: "all",
-            coverage: "Citywide",
-            message: "Classes at all levels resume tomorrow, as PAGASA has lifted Tropical Cyclone Wind Signal No. 1 over Cavite.",
-            status: "published",
-            published_at: now - 26 * hour,
-            created_at: now - 27 * hour,
-        },
-        {
             title: "Suspension of classes, College level",
             level: "college",
             coverage: "Citywide",
@@ -124,10 +117,34 @@ function seed(now: number) {
             created_at: now - 6 * hour,
         },
     ];
+    samples.push(...past_suspensions(now));
     for (const sample of samples) {
         const updated_at = sample.published_at ?? sample.cancelled_at ?? sample.created_at;
         advisories.push({ ...sample, id: randomUUID(), updated_at });
     }
+}
+
+// Past suspensions for the high-risk days in the weather history, published at 5:00 AM.
+// The oldest high-risk day is left without one, so the weather page has a missed day to point out.
+function past_suspensions(now: number): Array<Omit<advisory, "id" | "updated_at">> {
+    const high_risk_days = get_weather_history(30, now)
+        .slice(0, -1) // today is covered by the samples above
+        .filter((day) => day.risk === "high" || day.risk === "critical")
+        .slice(1);
+
+    return high_risk_days.map((day) => {
+        const published_at = day.day_start + 5 * hour;
+        const is_critical = day.risk === "critical";
+        return {
+            title: is_critical ? "Suspension of classes due to torrential rain" : "Suspension of classes due to heavy rainfall",
+            level: is_critical ? "all" : "preschool_to_high_school",
+            coverage: "Citywide",
+            message: `Due to the ${rainfall_warning_labels[day.rainfall_warning]} issued by PAGASA, face-to-face classes are suspended today. Schools may shift to modular or online learning.`,
+            status: "published",
+            published_at,
+            created_at: published_at - 30 * minute,
+        };
+    });
 }
 
 // Puts the sample advisories back. Used on first load and by tests.
