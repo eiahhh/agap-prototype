@@ -8,6 +8,7 @@ export const route_roles: Record<string, readonly user_role[]> = {
     "/dashboard/advisories": ["cdrrmo"],
     "/dashboard/weather": ["cdrrmo"],
     "/dashboard/announcements": ["cdrrmo"],
+    "/dashboard/reviews": ["cdrrmo"],
 };
 
 function matches_prefix(pathname: string, prefix: string): boolean {

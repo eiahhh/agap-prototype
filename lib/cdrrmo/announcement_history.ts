@@ -3,6 +3,13 @@
 import { find_user_by_id } from "@/lib/auth/demo_users";
 import type { advisory } from "./advisories";
 
+const review_labels = {
+    submitted: "Submitted for review",
+    approved: "Approved",
+    changes_requested: "Changes requested",
+    reset: "Edited, so it needs review again",
+} as const;
+
 export type history_entry = { at: number; label: string; by?: string; detail?: string };
 
 // Newest first.
@@ -10,6 +17,9 @@ export function announcement_history(item: advisory): history_entry[] {
     const name = (user_id?: string) => (user_id ? (find_user_by_id(user_id)?.name ?? "Unknown user") : undefined);
     const entries: history_entry[] = [{ at: item.created_at, label: "Drafted" }];
     if (item.published_at !== undefined) entries.push({ at: item.published_at, label: "Published" });
+    for (const event of item.review_log ?? []) {
+        entries.push({ at: event.at, label: review_labels[event.action], by: name(event.by), detail: event.comment });
+    }
     for (const revision of item.revisions ?? []) {
         entries.push({
             at: revision.at,

@@ -70,6 +70,10 @@ describe("routing: wrong role", () => {
         expect(await visit("/dashboard/advisories/new", role)).toBe("/unauthorized");
     });
 
+    it.each(["super_admin", "it_staff"] as const)("sends %s from reviews to /unauthorized", async (role) => {
+        expect(await visit("/dashboard/reviews", role)).toBe("/unauthorized");
+    });
+
     it.each(["super_admin", "it_staff"] as const)("sends %s from announcements to /unauthorized", async (role) => {
         expect(await visit("/dashboard/announcements", role)).toBe("/unauthorized");
     });
@@ -78,7 +82,7 @@ describe("routing: wrong role", () => {
         expect(await visit("/dashboard/weather", role)).toBe("/unauthorized");
     });
 
-    it.each(["/dashboard/advisories/new", "/dashboard/advisories/some-id/edit", "/dashboard/weather", "/dashboard/announcements"])("lets CDRRMO personnel open %s", async (pathname) => {
+    it.each(["/dashboard/advisories/new", "/dashboard/advisories/some-id/edit", "/dashboard/weather", "/dashboard/announcements", "/dashboard/reviews"])("lets CDRRMO personnel open %s", async (pathname) => {
         expect(await visit(pathname, "cdrrmo")).toBeNull();
     });
 

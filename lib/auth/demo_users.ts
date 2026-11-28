@@ -25,6 +25,8 @@ export const role_labels: Record<user_role, string> = {
 
 const demo_users: demo_user[] = [
     { id: "u_cdrrmo", email: "cdrrmo@cdrrmo.gov.ph", password: "Cdrrmo@2026", name: "CDRRMO Officer", role: "cdrrmo" },
+    // A second CDRRMO account, so notices can be reviewed by someone other than their author.
+    { id: "u_cdrrmo_head", email: "head@cdrrmo.gov.ph", password: "Head@2026", name: "CDRRMO Head", role: "cdrrmo" },
     { id: "u_admin", email: "admin@cdrrmo.gov.ph", password: "Admin@2026", name: "System Administrator", role: "super_admin" },
     { id: "u_it", email: "it@cdrrmo.gov.ph", password: "ItStaff@2026", name: "IT Staff", role: "it_staff" },
 ];

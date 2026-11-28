@@ -7,6 +7,7 @@ import type { demo_user } from "@/lib/auth/demo_users";
 import { list_advisories, list_pending_advisories } from "@/lib/cdrrmo/advisories";
 import { track_recent_announcements } from "@/lib/cdrrmo/announcement_tracker";
 import { count_unread_notifications, list_notifications } from "@/lib/cdrrmo/notifications";
+import { review_queue } from "@/lib/cdrrmo/review_queue";
 import { get_weather_snapshot } from "@/lib/cdrrmo/weather";
 import { View_shell } from "./view_shell";
 
@@ -26,7 +27,10 @@ export function Cdrrmo_view({ user }: { user: demo_user }) {
 
             <div className="grid grid-cols-1 gap-x-6 lg:grid-cols-3">
                 <div className="min-w-0 lg:col-span-2">
-                    <Pending_advisories advisories={list_pending_advisories()} />
+                    <Pending_advisories
+                        advisories={list_pending_advisories()}
+                        to_review_count={review_queue(list_advisories(), "to_review", user.id).length}
+                    />
                     <Recent_announcements announcements={track_recent_announcements(list_advisories(), now)} />
                 </div>
                 <aside className="min-w-0">

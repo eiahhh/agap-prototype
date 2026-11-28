@@ -5,6 +5,7 @@ import {
     type advisory,
 } from "@/lib/cdrrmo/advisories";
 import { primary_button_class } from "@/components/auth/form_styles";
+import { Review_badge } from "@/components/reviews/review_badge";
 import { Advisory_action_buttons } from "./advisory_action_buttons";
 import { Widget_card } from "./widget_card";
 
@@ -20,7 +21,7 @@ const status_badge_class = {
 } as const;
 
 // Drafted or scheduled class suspension advisories awaiting final review, with quick actions.
-export function Pending_advisories({ advisories }: { advisories: advisory[] }) {
+export function Pending_advisories({ advisories, to_review_count = 0 }: { advisories: advisory[]; to_review_count?: number }) {
     return (
         <section aria-labelledby="advisories-heading" className="mt-8">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -39,6 +40,21 @@ export function Pending_advisories({ advisories }: { advisories: advisory[] }) {
                     </Link>
                 </div>
             </div>
+
+            {to_review_count > 0 && (
+                <Link
+                    href="/dashboard/reviews"
+                    className="mt-3 flex items-center justify-between gap-3 rounded-[10px] border-[0.8px] border-violet-200 bg-violet-50 px-4 py-3 text-xs text-violet-950 transition hover:border-violet-400"
+                >
+                    <span>
+                        <span className="font-semibold">
+                            {to_review_count} {to_review_count === 1 ? "notice is" : "notices are"} waiting for your review
+                        </span>{" "}
+                        before they can be published.
+                    </span>
+                    <span aria-hidden className="font-semibold">Review →</span>
+                </Link>
+            )}
 
             {advisories.length === 0 ? (
                 <Widget_card title="Pending advisories" className="mt-3">
@@ -67,6 +83,7 @@ function Advisory_card({ item }: { item: advisory }) {
                     >
                         {advisory_status_labels[item.status]}
                     </span>
+                    <Review_badge item={item} />
                     <h3 className="mt-2 text-sm font-medium text-agap-ink">{item.title}</h3>
                 </div>
                 <p className="text-[11px] leading-[16.5px] text-agap-muted">
@@ -98,7 +115,7 @@ function Advisory_card({ item }: { item: advisory }) {
                 </Link>
                 <form className="flex">
                     <input type="hidden" name="advisory_id" value={item.id} />
-                    <Advisory_action_buttons title={item.title} />
+                    <Advisory_action_buttons title={item.title} review_state={item.review?.state} />
                 </form>
             </div>
         </li>
