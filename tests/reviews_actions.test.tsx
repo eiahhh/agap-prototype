@@ -32,7 +32,7 @@ function in_review_by(user_id: string): advisory {
 }
 
 function notification_titles() {
-    return list_notifications(50).map((item) => item.title);
+    return list_notifications("u_cdrrmo").map((item) => item.title);
 }
 
 beforeEach(() => {

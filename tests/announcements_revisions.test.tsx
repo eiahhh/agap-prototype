@@ -99,7 +99,7 @@ describe("revise_advisory_action", () => {
         ).rejects.toThrow(`NEXT_REDIRECT:${return_to}`);
 
         expect(find_advisory(item.id)!.title).toBe(content.title);
-        expect(list_notifications(20).filter((item) => item.title === "Announcement updated")).toHaveLength(1);
+        expect(list_notifications("u_cdrrmo").filter((item) => item.title === "Announcement updated")).toHaveLength(1);
     });
 
     it("explains when the notice can't be updated", async () => {
