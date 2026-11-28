@@ -4,6 +4,7 @@ import { Agap_logo } from "@/components/login/agap_logo";
 import { logout } from "@/app/login/actions";
 import { require_user } from "@/lib/auth/current_user";
 import { role_labels } from "@/lib/auth/demo_users";
+import { count_inbox_unread } from "@/lib/cdrrmo/notification_preferences";
 
 // Shared shell for every /dashboard page: logo, nav, signed-in user and sign out.
 export default function dashboard_layout({ children }: { children: React.ReactNode }) {
@@ -58,6 +59,18 @@ async function Account_nav() {
                             </Link>
                         </li>
                     )}
+                    {user.role === "cdrrmo" && (
+                        <li>
+                            <Link href="/dashboard/records" className="text-agap-700 hover:underline">
+                                Records
+                            </Link>
+                        </li>
+                    )}
+                    {user.role === "cdrrmo" && (
+                        <li>
+                            <Notifications_link user_id={user.id} />
+                        </li>
+                    )}
                     {user.role === "super_admin" && (
                         <li>
                             <Link href="/dashboard/requests" className="text-agap-700 hover:underline">
@@ -82,5 +95,19 @@ async function Account_nav() {
                 </button>
             </form>
         </div>
+    );
+}
+
+function Notifications_link({ user_id }: { user_id: string }) {
+    const unread = count_inbox_unread(user_id);
+    return (
+        <Link href="/dashboard/notifications" className="inline-flex items-center gap-1.5 text-agap-700 hover:underline">
+            Notifications
+            {unread > 0 && (
+                <span aria-label={`${unread} unread`} className="rounded-full bg-agap-700 px-1.5 py-px text-[9px] font-semibold text-white">
+                    {unread}
+                </span>
+            )}
+        </Link>
     );
 }

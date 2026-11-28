@@ -67,6 +67,8 @@ export async function revise_advisory_action(
         kind: "advisory",
         title: "Announcement updated",
         body: `“${result.content.title}” was updated and re-sent: ${result.note}`,
+        href: `/dashboard/announcements/${advisory_id}`,
+        actor_id: user.id,
     });
     redirect(safe_return_path(form_data.get("return_to")));
 }
@@ -81,6 +83,8 @@ export async function publish_advisory_action(form_data: FormData) {
             kind: "advisory",
             title: "Advisory published",
             body: `“${find_advisory(advisory_id)!.title}” is now being sent to the portal, SMS, Facebook and schools.`,
+            href: `/dashboard/announcements/${advisory_id}`,
+            actor_id: user.id,
         });
     }
     refresh();
@@ -96,6 +100,8 @@ export async function cancel_advisory_action(form_data: FormData) {
             kind: "advisory",
             title: "Advisory cancelled",
             body: `“${find_advisory(advisory_id)!.title}” was cancelled and will not be sent.`,
+            href: `/dashboard/announcements/${advisory_id}`,
+            actor_id: user.id,
         });
     }
     refresh();
